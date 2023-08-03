@@ -1,5 +1,9 @@
 lexer grammar MxLexer;
 
+@header {
+package Parser;
+}
+
 Annotation: (BlockAnnotation | LineAnnotation) -> skip;
 
 BlockAnnotation: '/*' .*? '*/';
@@ -20,7 +24,6 @@ Semicolon: ';';
 Question: '?';
 Colon: ':';
 
-Assign: '=';
 Increment: '++';
 Decrement: '--';
 Not: '!';
@@ -43,6 +46,7 @@ Bitxor: '^';
 Bitor: '|';
 And: '&&';
 Or: '||';
+Assign: '=';
 
 Class: 'class';
 If: 'if';
