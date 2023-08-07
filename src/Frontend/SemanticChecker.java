@@ -11,9 +11,9 @@ import java.util.Objects;
 public class SemanticChecker implements ASTVisitor {
     public Scope currentScope;
     public globalScope global;
-    public Type currentType;
+    public Type currentType, retType;
     public classType currentClass;
-    public boolean ifret;
+    public boolean ifret, infunc, ismain;
     public intType IntType = new intType();
     public boolType BoolType = new boolType();
     public nullType NullType = new nullType();
@@ -22,7 +22,8 @@ public class SemanticChecker implements ASTVisitor {
     public SemanticChecker(globalScope global) {
         this.currentScope = this.global = global;
         currentClass = null;
-        currentType = null;
+        currentType = retType = null;
+        ifret = infunc = ismain = false;
     }
 
     @Override
@@ -56,6 +57,7 @@ public class SemanticChecker implements ASTVisitor {
             currentType = new arrayType(currentType, ((arrayType) it.typename.type).dim);
         }
         it.var.forEach(v -> v.accept(this));
+        currentType = null;
     }
 
     private static String getName(Type it, Position pos) {
@@ -93,9 +95,9 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(funcDefNode it) {
         currentScope = new Scope(currentScope);
-        currentScope.infunc = true;
-        currentScope.retType = it.typename.type;
-        currentScope.ismain = (Objects.equals(it.name, "main"));
+        infunc = true;
+        retType = it.typename.type;
+        ismain = (Objects.equals(it.name, "main"));
         if (it.param != null) {
             it.param.forEach(pm -> pm.accept(this));
         }
@@ -105,6 +107,8 @@ public class SemanticChecker implements ASTVisitor {
                 throw new semanticError(it.pos, "No return value");
             }
         }
+        infunc = ismain = false;
+        retType = null;
         currentScope = currentScope.fatherScope;
     }
 
@@ -147,6 +151,7 @@ public class SemanticChecker implements ASTVisitor {
             currentType = new arrayType(currentType, ((arrayType) it.typename.type).dim);
         }
         it.var.forEach(v -> v.accept(this));
+        currentType = null;
     }
 
     @Override
@@ -236,23 +241,23 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(returnStmtNode it) {
-        if (!currentScope.infunc) {
+        if (!infunc) {
             throw new semanticError(it.pos, "Return doesn't in a function");
         }
         if (it.ret != null) {
             it.ret.accept(this);
             if (it.ret.type instanceof nullType) {
-                if (!(currentScope.retType instanceof nullType || currentScope.retType instanceof voidType ||
-                      currentScope.retType instanceof arrayType || currentScope.retType instanceof classType)) {
+                if (!(retType instanceof nullType || retType instanceof voidType ||
+                      retType instanceof arrayType || retType instanceof classType)) {
                     throw new semanticError(it.pos, "Return value is null");
                 }
             } else {
-                if (!(it.ret.type.equal(currentScope.retType))) {
+                if (!(it.ret.type.equal(retType))) {
                     throw new semanticError(it.pos, "Return type wrong");
                 }
             }
         } else {
-            if (!(currentScope.retType instanceof voidType || currentScope.retType instanceof nullType) && !currentScope.ismain) {
+            if (!(retType instanceof voidType || retType instanceof nullType) && !ismain) {
                 throw new semanticError(it.pos, "No return value");
             }
         }

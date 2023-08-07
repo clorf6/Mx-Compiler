@@ -9,18 +9,13 @@ import java.util.HashMap;
 public class Scope {
     public HashMap<String, Type> members;
     public Scope fatherScope;
-    public Type retType = null;
-    public boolean inloop, infunc, ismain;
+    public boolean inloop;
 
     public Scope(Scope fatherScope) {
         members = new HashMap<>();
         this.fatherScope = fatherScope;
         if (fatherScope != null) {
             this.inloop = fatherScope.inloop;
-            this.infunc = fatherScope.infunc;
-            this.retType = fatherScope.retType;
-            //this.open = fatherScope.open;
-            this.ismain = fatherScope.ismain;
         }
     }
 
