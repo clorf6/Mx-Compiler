@@ -1,8 +1,8 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 public abstract class constExprNode extends ExprNode {
-    public constExprNode(position pos) {
+    public constExprNode(Position pos) {
         super(pos);
     }
 

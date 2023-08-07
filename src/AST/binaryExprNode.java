@@ -12,7 +12,7 @@ public class binaryExprNode extends ExprNode {
 
     public binaryOpType opCode;
 
-    public binaryExprNode(position pos, ExprNode lhs, ExprNode rhs, binaryOpType opCode) {
+    public binaryExprNode(Position pos, ExprNode lhs, ExprNode rhs, binaryOpType opCode) {
         super(pos);
         this.lhs = lhs;
         this.rhs = rhs;

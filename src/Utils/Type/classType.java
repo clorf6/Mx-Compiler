@@ -1,5 +1,11 @@
 package Utils.Type;
 
+import AST.classDefNode;
+import AST.funcDefNode;
+import AST.varNode;
+import AST.varDefNode;
+import java.util.HashMap;
+
 public class classType extends Type {
     public String className;
 
@@ -16,6 +22,6 @@ public class classType extends Type {
 
     @Override
     public String toString() {
-        return "class:" + className;
+        return "class";
     }
 }

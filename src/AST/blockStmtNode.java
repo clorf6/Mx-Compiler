@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class blockStmtNode extends StmtNode {
     public ArrayList<StmtNode> stmt;
 
-    public blockStmtNode(position pos, ArrayList<StmtNode> stmt) {
+    public blockStmtNode(Position pos, ArrayList<StmtNode> stmt) {
         super(pos);
         this.stmt = stmt;
     }

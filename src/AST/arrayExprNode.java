@@ -5,10 +5,12 @@ public class arrayExprNode extends ExprNode {
     public ExprNode name;
     public ExprNode index;
 
-    public arrayExprNode(position pos, ExprNode name, ExprNode index) {
+
+    public arrayExprNode(Position pos, ExprNode name, ExprNode index) {
         super(pos);
         this.name = name;
         this.index = index;
+        this.isAssign = true;
     }
 
     @Override

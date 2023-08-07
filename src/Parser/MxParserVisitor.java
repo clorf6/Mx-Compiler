@@ -278,6 +278,18 @@ public interface MxParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitNew_expr(MxParser.New_exprContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link MxParser#newerror_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNewerror_expr(MxParser.Newerror_exprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link MxParser#newvar_expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNewvar_expr(MxParser.Newvar_exprContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link MxParser#typename}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

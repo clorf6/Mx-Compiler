@@ -4,7 +4,7 @@ import Utils.*;
 public class memberFuncExprNode extends ExprNode {
     public ExprNode expr;
     public funcExprNode func;
-    public memberFuncExprNode(position pos, ExprNode expr, funcExprNode func) {
+    public memberFuncExprNode(Position pos, ExprNode expr, funcExprNode func) {
         super(pos);
         this.expr = expr;
         this.func = func;

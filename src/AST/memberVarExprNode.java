@@ -3,11 +3,12 @@ package AST;
 import Utils.*;
 public class memberVarExprNode extends ExprNode {
     public ExprNode expr;
-    String name;
-    public memberVarExprNode(position pos, ExprNode expr, String name) {
+    public String name;
+    public memberVarExprNode(Position pos, ExprNode expr, String name) {
         super(pos);
         this.expr = expr;
         this.name = name;
+        this.isAssign = true;
     }
 
     @Override

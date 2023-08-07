@@ -4,7 +4,7 @@ import Utils.*;
 public class boolNode extends constExprNode {
     public boolean val;
 
-    public boolNode(position pos, boolean val) {
+    public boolNode(Position pos, boolean val) {
         super(pos);
         this.val = val;
     }

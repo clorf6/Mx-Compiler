@@ -1,9 +1,9 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 
 public abstract class flowStmtNode extends StmtNode {
-    public flowStmtNode(position pos) {
+    public flowStmtNode(Position pos) {
         super(pos);
     }
 

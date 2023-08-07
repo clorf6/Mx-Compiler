@@ -1,13 +1,13 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 public class forDefStmtNode extends loopStmtNode {
     public varDefNode varDef;
     public ExprNode cond;
     public ExprNode step;
     public StmtNode stmt;
 
-    public forDefStmtNode(position pos, varDefNode varDef,
+    public forDefStmtNode(Position pos, varDefNode varDef,
                           ExprNode cond, ExprNode step, StmtNode stmt) {
         super(pos);
         this.varDef = varDef;

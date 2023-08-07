@@ -6,12 +6,12 @@ import Utils.Type.*;
 import java.util.ArrayList;
 
 public class newExprNode extends ExprNode {
-    public Type type;
+    public Type typename;
     public ArrayList<ExprNode> expr;
     public int dim;
-    public newExprNode(position pos, Type type, ArrayList<ExprNode> expr, int dim) {
+    public newExprNode(Position pos, Type typename, ArrayList<ExprNode> expr, int dim) {
         super(pos);
-        this.type = type;
+        this.typename = typename;
         this.expr = expr;
         this.dim = dim;
     }

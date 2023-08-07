@@ -1,8 +1,8 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 public class continueStmtNode extends flowStmtNode {
-    public continueStmtNode(position pos) {
+    public continueStmtNode(Position pos) {
         super(pos);
     }
 

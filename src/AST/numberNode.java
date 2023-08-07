@@ -2,9 +2,9 @@ package AST;
 
 import Utils.*;
 public class numberNode extends constExprNode {
-    public int val;
+    public long val;
 
-    public numberNode(position pos, int val) {
+    public numberNode(Position pos, long val) {
         super(pos);
         this.val = val;
     }

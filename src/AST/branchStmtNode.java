@@ -1,18 +1,17 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
+
+import java.util.ArrayList;
 
 public class branchStmtNode extends StmtNode {
-    public ExprNode cond;
-    public StmtNode thenStmt;
-    public StmtNode elseStmt;
+    public ArrayList<ExprNode> cond;
+    public ArrayList<StmtNode> Stmt;
 
-    public branchStmtNode(position pos, ExprNode cond,
-                          StmtNode thenStmt, StmtNode elseStmt) {
+    public branchStmtNode(Position pos, ArrayList<ExprNode> cond, ArrayList<StmtNode> Stmt) {
         super(pos);
         this.cond = cond;
-        this.thenStmt = thenStmt;
-        this.elseStmt = elseStmt;
+        this.Stmt = Stmt;
     }
 
     @Override

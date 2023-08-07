@@ -4,7 +4,7 @@ import Utils.*;
 public class ternaryExprNode extends ExprNode {
     public ExprNode cond, thenExpr, elseExpr;
 
-    public ternaryExprNode(position pos, ExprNode cond,
+    public ternaryExprNode(Position pos, ExprNode cond,
                            ExprNode thenExpr, ExprNode elseExpr) {
         super(pos);
         this.cond = cond;

@@ -1,6 +1,6 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 
 import java.util.ArrayList;
 
@@ -10,7 +10,7 @@ public class funcDefNode extends ASTNode {
     public ArrayList<paramNode> param;
     public blockStmtNode suite;
 
-    public funcDefNode(position pos, typeNode typename, String name,
+    public funcDefNode(Position pos, typeNode typename, String name,
                        ArrayList<paramNode> param, blockStmtNode suite) {
         super(pos);
         this.typename = typename;

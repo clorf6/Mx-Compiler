@@ -6,9 +6,9 @@ import java.util.ArrayList;
 
 public class varDefStmtNode extends StmtNode {
     public typeNode typename;
-    public ArrayList<varNode> var = new ArrayList<>();
+    public ArrayList<varNode> var;
 
-    public varDefStmtNode(position pos, typeNode typename, ArrayList<varNode> var) {
+    public varDefStmtNode(Position pos, typeNode typename, ArrayList<varNode> var) {
         super(pos);
         this.typename = typename;
         this.var = var;

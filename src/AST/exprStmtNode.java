@@ -1,12 +1,12 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 import java.util.ArrayList;
 
 public class exprStmtNode extends StmtNode {
-    ArrayList<ExprNode> expr;
+    public ArrayList<ExprNode> expr;
 
-    public exprStmtNode(position pos, ArrayList<ExprNode> expr) {
+    public exprStmtNode(Position pos, ArrayList<ExprNode> expr) {
         super(pos);
         this.expr = expr;
     }

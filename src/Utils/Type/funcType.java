@@ -1,21 +1,22 @@
 package Utils.Type;
 
-public class funcType extends Type {
-    public String funcName;
+import AST.funcDefNode;
 
-    public funcType(String funcName) {
+public class funcType extends Type {
+    public funcDefNode func;
+    public funcType(funcDefNode func) {
         super("func");
-        this.funcName = funcName;
+        this.func = func;
     }
 
     @Override
     public boolean equal(Object obj) {
         return obj.getClass().equals(funcType.class)
-                && ((funcType) obj).funcName.equals(funcName);
+                && ((funcType) obj).func.equals(func);
     }
 
     @Override
     public String toString() {
-        return "func:" + funcName;
+        return "func";
     }
 }

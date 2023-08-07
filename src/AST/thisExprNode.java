@@ -2,7 +2,7 @@ package AST;
 
 import Utils.*;
 public class thisExprNode extends ExprNode {
-    public thisExprNode(position pos) {
+    public thisExprNode(Position pos) {
         super(pos);
     }
 

@@ -7,7 +7,7 @@ public class varDefNode extends ASTNode {
     public typeNode typename;
     public ArrayList<varNode> var;
 
-    public varDefNode(position pos, typeNode typename, ArrayList<varNode> var) {
+    public varDefNode(Position pos, typeNode typename, ArrayList<varNode> var) {
         super(pos);
         this.typename = typename;
         this.var = var;

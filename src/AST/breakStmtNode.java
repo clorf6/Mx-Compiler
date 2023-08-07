@@ -1,8 +1,8 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 public class breakStmtNode extends flowStmtNode {
-    public breakStmtNode(position pos) {
+    public breakStmtNode(Position pos) {
         super(pos);
     }
 

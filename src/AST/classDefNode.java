@@ -1,6 +1,6 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 
 import java.util.ArrayList;
 
@@ -10,7 +10,7 @@ public class classDefNode extends ASTNode {
 
     public ArrayList<funcDefNode> funcDef;
 
-    public classDefNode(position pos, String name,
+    public classDefNode(Position pos, String name,
                         ArrayList<varDefNode> varDef,
                         ArrayList<funcDefNode> funcDef) {
         super(pos);

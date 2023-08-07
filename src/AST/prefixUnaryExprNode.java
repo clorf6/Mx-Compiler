@@ -9,10 +9,11 @@ public class prefixUnaryExprNode extends ExprNode {
 
     public prefixOpType opCode;
 
-    public prefixUnaryExprNode(position pos, ExprNode expr, prefixOpType opCode) {
+    public prefixUnaryExprNode(Position pos, ExprNode expr, prefixOpType opCode) {
         super(pos);
         this.expr = expr;
         this.opCode = opCode;
+        this.isAssign = true;
     }
 
     @Override

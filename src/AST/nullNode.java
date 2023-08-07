@@ -2,7 +2,7 @@ package AST;
 
 import Utils.*;
 public class nullNode extends constExprNode {
-    public nullNode(position pos) {
+    public nullNode(Position pos) {
         super(pos);
     }
 

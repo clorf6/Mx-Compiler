@@ -4,7 +4,7 @@ import Utils.*;
 public class strNode extends constExprNode {
     public String val;
 
-    public strNode(position pos, String val) {
+    public strNode(Position pos, String val) {
         super(pos);
         this.val = val;
     }

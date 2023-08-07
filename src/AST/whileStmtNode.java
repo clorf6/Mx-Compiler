@@ -1,11 +1,11 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 public class whileStmtNode extends loopStmtNode {
     public ExprNode cond;
     public StmtNode stmt;
 
-    public whileStmtNode(position pos, ExprNode cond, StmtNode stmt) {
+    public whileStmtNode(Position pos, ExprNode cond, StmtNode stmt) {
         super(pos);
         this.cond = cond;
         this.stmt = stmt;

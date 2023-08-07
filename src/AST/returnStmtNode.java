@@ -1,10 +1,10 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 public class returnStmtNode extends flowStmtNode {
     public ExprNode ret;
 
-    public returnStmtNode(position pos, ExprNode ret) {
+    public returnStmtNode(Position pos, ExprNode ret) {
         super(pos);
         this.ret = ret;
     }

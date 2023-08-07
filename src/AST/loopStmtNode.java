@@ -1,9 +1,9 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 
 public abstract class loopStmtNode extends StmtNode {
-    public loopStmtNode(position pos) {
+    public loopStmtNode(Position pos) {
         super(pos);
     }
 

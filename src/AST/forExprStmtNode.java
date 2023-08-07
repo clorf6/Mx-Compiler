@@ -1,14 +1,14 @@
 package AST;
 
-import Utils.position;
+import Utils.Position;
 public class forExprStmtNode extends loopStmtNode {
     public ExprNode init;
     public ExprNode cond;
     public ExprNode step;
     public StmtNode stmt;
 
-    public forExprStmtNode(position pos, ExprNode init,
-                          ExprNode cond, ExprNode step, StmtNode stmt) {
+    public forExprStmtNode(Position pos, ExprNode init,
+                           ExprNode cond, ExprNode step, StmtNode stmt) {
         super(pos);
         this.init = init;
         this.cond = cond;

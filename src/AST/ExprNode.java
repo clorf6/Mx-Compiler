@@ -1,10 +1,16 @@
 package AST;
 
 import Utils.*;
+import Utils.Type.Type;
 
 public abstract class ExprNode extends ASTNode {
-    public ExprNode(position pos) {
+
+    public Type type;
+    public boolean isAssign;
+
+    public ExprNode(Position pos) {
         super(pos);
+        this.isAssign = false;
     }
 
     @Override

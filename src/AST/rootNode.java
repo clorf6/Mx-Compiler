@@ -9,7 +9,7 @@ public class rootNode extends ASTNode{
     public ArrayList<classDefNode> classDef;
     public ArrayList<varDefNode> varDef;
 
-    public rootNode(position pos, ArrayList<funcDefNode> funcDef,
+    public rootNode(Position pos, ArrayList<funcDefNode> funcDef,
                     ArrayList<classDefNode> classDef, ArrayList<varDefNode> varDef) {
         super(pos);
         this.classDef = classDef;

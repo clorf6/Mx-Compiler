@@ -9,7 +9,7 @@ public class suffixUnaryExprNode extends ExprNode {
 
     public suffixOpType opCode;
 
-    public suffixUnaryExprNode(position pos, ExprNode expr, suffixOpType opCode) {
+    public suffixUnaryExprNode(Position pos, ExprNode expr, suffixOpType opCode) {
         super(pos);
         this.expr = expr;
         this.opCode = opCode;
