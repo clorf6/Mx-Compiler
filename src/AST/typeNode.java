@@ -1,7 +1,7 @@
 package AST;
 
 import Utils.Position;
-import Utils.Type.*;
+import AST.Type.*;
 
 public class typeNode extends ASTNode {
     public Type type;

@@ -3,7 +3,7 @@ package Frontend;
 import AST.*;
 import Utils.Error.semanticError;
 import Utils.Position;
-import Utils.Type.*;
+import AST.Type.*;
 import Utils.Scope.*;
 
 import java.util.Objects;

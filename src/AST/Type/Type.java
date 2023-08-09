@@ -1,4 +1,4 @@
-package Utils.Type;
+package AST.Type;
 
 public abstract class Type {
     public String typeName;

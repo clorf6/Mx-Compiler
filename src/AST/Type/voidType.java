@@ -1,4 +1,4 @@
-package Utils.Type;
+package AST.Type;
 
 public class voidType extends Type {
     public voidType() {

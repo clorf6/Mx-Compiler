@@ -2,7 +2,7 @@ package Utils.Scope;
 
 import Utils.Position;
 import Utils.Error.*;
-import Utils.Type.*;
+import AST.Type.*;
 
 import java.util.HashMap;
 

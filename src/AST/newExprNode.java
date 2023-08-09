@@ -1,7 +1,7 @@
 package AST;
 
 import Utils.*;
-import Utils.Type.*;
+import AST.Type.*;
 
 import java.util.ArrayList;
 

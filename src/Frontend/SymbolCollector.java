@@ -1,7 +1,7 @@
 package Frontend;
 
 import AST.*;
-import Utils.Type.*;
+import AST.Type.*;
 import Utils.Scope.*;
 import Utils.Position;
 

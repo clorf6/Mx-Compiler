@@ -1,4 +1,4 @@
-package Utils.Type;
+package AST.Type;
 
 public class arrayType extends Type {
     public Type elemType;

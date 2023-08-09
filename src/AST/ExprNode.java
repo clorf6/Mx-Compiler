@@ -1,7 +1,7 @@
 package AST;
 
 import Utils.*;
-import Utils.Type.Type;
+import AST.Type.Type;
 
 public abstract class ExprNode extends ASTNode {
 

@@ -1,4 +1,4 @@
-package Utils.Type;
+package AST.Type;
 
 import AST.funcDefNode;
 

@@ -1,10 +1,4 @@
-package Utils.Type;
-
-import AST.classDefNode;
-import AST.funcDefNode;
-import AST.varNode;
-import AST.varDefNode;
-import java.util.HashMap;
+package AST.Type;
 
 public class classType extends Type {
     public String className;

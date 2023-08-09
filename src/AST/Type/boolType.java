@@ -1,4 +1,4 @@
-package Utils.Type;
+package AST.Type;
 
 public class boolType extends Type {
     public boolType() {

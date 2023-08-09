@@ -2,7 +2,7 @@ package Frontend;
 
 import AST.*;
 import Utils.*;
-import Utils.Type.*;
+import AST.Type.*;
 import Utils.Error.*;
 import Parser.*;
 import org.antlr.v4.runtime.ParserRuleContext;
