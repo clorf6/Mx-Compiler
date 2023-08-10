@@ -1,13 +1,13 @@
 package IR.Instruction;
 
-import IR.Object.Object;
+import IR.Entity.Entity;
 import IR.Type.voidType;
 import IR.IRVisitor;
 
 public class ret extends Instruction {
-    Object val;
+    Entity val;
 
-    public ret(Object val) {
+    public ret(Entity val) {
         this.val = val;
     }
 

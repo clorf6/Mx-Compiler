@@ -1,22 +1,22 @@
 package IR.Instruction;
 
 import IR.IRVisitor;
-import IR.Object.Object;
+import IR.Entity.Entity;
 import java.util.ArrayList;
 
 public class call extends Instruction {
 
-    Object res;
+    Entity res;
     String name;
-    ArrayList<Object> args;
+    ArrayList<Entity> args;
 
-    public call(Object res, String name, ArrayList<Object> args) {
+    public call(Entity res, String name, ArrayList<Entity> args) {
         this.res = res;
         this.name = name;
         this.args = args;
     }
 
-    public call(String name, ArrayList<Object> args) {
+    public call(String name, ArrayList<Entity> args) {
         this.res = null;
         this.name = name;
         this.args = args;
@@ -36,7 +36,7 @@ public class call extends Instruction {
             ret = new StringBuilder(res.getText() + " = call " + res.type.toString()
                     + " @" + name + "(");
         }
-        for (Object arg : args) {
+        for (Entity arg : args) {
             ret.append(arg.toString());
         }
         ret.append(")");

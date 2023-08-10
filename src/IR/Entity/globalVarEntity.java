@@ -1,10 +1,10 @@
-package IR.Object;
+package IR.Entity;
 
 import IR.Type.*;
 
-public class globalVarObject extends varObject {
+public class globalVarEntity extends varEntity {
 
-    public globalVarObject(Type type, String name) {
+    public globalVarEntity(Type type, String name) {
         super(type, name);
     }
 

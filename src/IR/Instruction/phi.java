@@ -1,18 +1,18 @@
 package IR.Instruction;
 
 import IR.IRVisitor;
-import IR.Object.Object;
+import IR.Entity.Entity;
 import IR.Type.labelType;
 import Utils.Error.internalError;
 
 import java.util.ArrayList;
 
 public class phi extends Instruction {
-    Object res;
-    ArrayList<Object> val;
+    Entity res;
+    ArrayList<Entity> val;
     ArrayList<labelType> label;
 
-    public phi(Object res, ArrayList<Object> val, ArrayList<labelType> label) {
+    public phi(Entity res, ArrayList<Entity> val, ArrayList<labelType> label) {
         this.res = res;
         this.val = val;
         this.label = label;

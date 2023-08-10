@@ -1,18 +1,18 @@
 package IR.Instruction;
 
 import IR.IRVisitor;
-import IR.Object.Object;
-import IR.Object.intObject;
+import IR.Entity.Entity;
+import IR.Entity.intEntity;
 import IR.Type.*;
 import Utils.Error.internalError;
 
 import java.util.ArrayList;
 
 public class getelementptr extends Instruction {
-    public Object res, p;
-    public ArrayList<intObject> idx;
+    public Entity res, p;
+    public ArrayList<intEntity> idx;
 
-    public getelementptr(Object res, Object p, ArrayList<intObject> idx) {
+    public getelementptr(Entity res, Entity p, ArrayList<intEntity> idx) {
         this.res = res;
         this.p = p;
         this.idx = idx;
@@ -34,7 +34,7 @@ public class getelementptr extends Instruction {
         StringBuilder ret = new StringBuilder(res.getText() + " = getelementptr " +
                 ((pointerType) p.type).elemType.toString() + ", " +
                 p.toString());
-        for (intObject Idx : idx) {
+        for (intEntity Idx : idx) {
             ret.append(", ").append(Idx.toString());
         }
         return ret.toString();

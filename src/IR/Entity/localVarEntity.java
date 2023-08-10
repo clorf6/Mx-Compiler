@@ -1,10 +1,10 @@
-package IR.Object;
+package IR.Entity;
 
 import IR.Type.*;
 
-public class localVarObject extends varObject {
+public class localVarEntity extends varEntity {
 
-    public localVarObject(Type type, String name) {
+    public localVarEntity(Type type, String name) {
         super(type, name);
     }
 

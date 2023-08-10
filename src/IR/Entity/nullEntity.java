@@ -1,10 +1,10 @@
-package IR.Object;
+package IR.Entity;
 
 import IR.Type.*;
 import Utils.Error.internalError;
 
-public class nullObject extends constObject {
-    public nullObject(Type type) {
+public class nullEntity extends constEntity {
+    public nullEntity(Type type) {
         super(type);
         if (!(type instanceof pointerType)) {
             throw new internalError(null, "Null type wrong");

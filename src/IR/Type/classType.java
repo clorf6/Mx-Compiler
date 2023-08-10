@@ -15,6 +15,13 @@ public class classType extends Type {
         }
     }
 
+    public void flush() {
+        size = 0;
+        for (Type type : typelist) {
+            size += type.size();
+        }
+    }
+
     @Override
     public int size() {
         return size;

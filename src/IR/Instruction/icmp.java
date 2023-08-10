@@ -1,8 +1,8 @@
 package IR.Instruction;
 
 import IR.IRVisitor;
-import IR.Object.Object;
-import IR.Object.boolObject;
+import IR.Entity.Entity;
+import IR.Entity.boolEntity;
 import AST.binaryExprNode;
 import Utils.Error.internalError;
 
@@ -11,12 +11,12 @@ public class icmp extends Instruction {
         eq, ne, sgt, sge, slt, sle
     }
 
-    boolObject res;
-    Object op1, op2;
+    boolEntity res;
+    Entity op1, op2;
     compOp op;
 
-    public icmp(boolObject res, binaryExprNode.binaryOpType op,
-                Object op1, Object op2) {
+    public icmp(boolEntity res, binaryExprNode.binaryOpType op,
+                Entity op1, Entity op2) {
         this.res = res;
         this.op1 = op1;
         this.op2 = op2;

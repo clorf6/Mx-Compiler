@@ -1,12 +1,12 @@
-package IR.Object;
+package IR.Entity;
 
 import IR.Type.*;
 import Utils.Error.internalError;
 
-public class intObject extends constObject {
+public class intEntity extends constEntity {
     public int val;
 
-    public intObject(Type type) {
+    public intEntity(Type type) {
         super(type);
         if (!(type instanceof integerType)) {
             throw new internalError(null, "Bool type wrong");
@@ -19,12 +19,12 @@ public class intObject extends constObject {
         }
     }
 
-    public intObject(Type type, int val) {
+    public intEntity(Type type, int val) {
         this(type);
         this.val = val;
     }
 
-    public intObject(int val) {
+    public intEntity(int val) {
         super(new integerType(32));
         this.val = val;
     }

@@ -2,14 +2,14 @@ package IR.Instruction;
 
 import IR.IRVisitor;
 import IR.Type.*;
-import IR.Object.Object;
+import IR.Entity.Entity;
 import Utils.Error.internalError;
 
 public class alloca extends Instruction {
     Type type;
-    Object res;
+    Entity res;
 
-    public alloca(Object res, Type type) {
+    public alloca(Entity res, Type type) {
         this.type = type;
         this.res = res;
         if (!(res.type instanceof pointerType)) {

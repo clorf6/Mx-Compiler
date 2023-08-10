@@ -1,12 +1,12 @@
-package IR.Object;
+package IR.Entity;
 
 import IR.Type.*;
 import Utils.Error.internalError;
 
-public class stringObject extends constObject {
+public class stringEntity extends constEntity {
     String val;
 
-    public stringObject(Type type) {
+    public stringEntity(Type type) {
         super(type);
         if (!(type instanceof arrayType)) {
             throw new internalError(null, "String type wrong");
@@ -23,7 +23,7 @@ public class stringObject extends constObject {
         }
     }
 
-    public stringObject(Type type, String val) {
+    public stringEntity(Type type, String val) {
         this(type);
         this.val = val;
         if (((arrayType) type).length != val.length()) {
@@ -31,7 +31,7 @@ public class stringObject extends constObject {
         }
     }
 
-    public stringObject(String val) {
+    public stringEntity(String val) {
         this(new arrayType(new integerType(8), val.length()));
         this.val = val;
     }
@@ -43,6 +43,6 @@ public class stringObject extends constObject {
 
     @Override
     public String toString() {
-        return "constant " + type.toString() + " " + getText();
+        return type.toString() + " " + getText();
     }
 }

@@ -11,6 +11,7 @@ public class globalScope extends Scope {
 
     public globalScope(Scope fatherScope) {
         super(fatherScope);
+        this.dep = 0;
     }
 
     public void putBasic(String name, Type type, Position pos) {

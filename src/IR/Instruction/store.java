@@ -1,14 +1,14 @@
 package IR.Instruction;
 
 import IR.IRVisitor;
-import IR.Object.Object;
+import IR.Entity.Entity;
 import IR.Type.*;
 import Utils.Error.internalError;
 
 public class store extends Instruction {
-    public Object val, p;
+    public Entity val, p;
 
-    public store(Object val, Object p) {
+    public store(Entity val, Entity p) {
         this.val = val;
         this.p = p;
         if (!(p.type instanceof pointerType)) {

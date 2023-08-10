@@ -1,11 +1,11 @@
-package IR.Object;
+package IR.Entity;
 
 import IR.Type.*;
 
-public abstract class Object {
+public abstract class Entity {
     public Type type;
 
-    public Object(Type type) {
+    public Entity(Type type) {
         this.type = type;
     }
 

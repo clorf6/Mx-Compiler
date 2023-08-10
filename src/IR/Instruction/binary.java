@@ -3,7 +3,7 @@ package IR.Instruction;
 
 import AST.binaryExprNode;
 import IR.IRVisitor;
-import IR.Object.Object;
+import IR.Entity.Entity;
 import Utils.Error.internalError;
 
 public class binary extends Instruction {
@@ -12,10 +12,10 @@ public class binary extends Instruction {
         srem, shl, ashr, and, or, xor
     }
 
-    Object res, op1, op2;
+    Entity res, op1, op2;
     binaryOp op;
 
-    public binary(Object res, Object op1, binaryExprNode.binaryOpType op, Object op2) {
+    public binary(Entity res, Entity op1, binaryExprNode.binaryOpType op, Entity op2) {
         this.res = res;
         this.op1 = op1;
         this.op2 = op2;

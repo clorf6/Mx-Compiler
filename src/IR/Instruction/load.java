@@ -1,14 +1,14 @@
 package IR.Instruction;
 
 import IR.IRVisitor;
-import IR.Object.Object;
+import IR.Entity.Entity;
 import IR.Type.*;
 import Utils.Error.internalError;
 
 public class load extends Instruction {
-    public Object res, p;
+    public Entity res, p;
 
-    public load(Object res, Object p) {
+    public load(Entity res, Entity p) {
         this.res = res;
         this.p = p;
         if (!(p.type instanceof pointerType)) {

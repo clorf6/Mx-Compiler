@@ -1,12 +1,12 @@
-package IR.Object;
+package IR.Entity;
 
 import IR.Type.*;
 import Utils.Error.internalError;
 
-public class boolObject extends constObject {
+public class boolEntity extends constEntity {
     public boolean val;
 
-    public boolObject(Type type) {
+    public boolEntity(Type type) {
         super(type);
         if (!(type instanceof integerType)) {
             throw new internalError(null, "Bool type wrong");
@@ -19,19 +19,19 @@ public class boolObject extends constObject {
         }
     }
 
-    public boolObject(Type type, boolean val) {
+    public boolEntity(Type type, boolean val) {
         this(type);
         this.val = val;
     }
 
-    public boolObject(boolean val) {
+    public boolEntity(boolean val) {
         super(new integerType(1));
         this.val = val;
     }
 
     @Override
     public String getText() {
-        return Boolean.toString(val);
+        return val ? "1" : "0";
     }
 
     @Override
