@@ -38,16 +38,4 @@ public class intObject extends constObject {
     public String toString() {
         return "i32 " + getText();
     }
-
-    public static class nullType extends Type {
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public String toString() {
-            return "null";
-        }
-    }
 }

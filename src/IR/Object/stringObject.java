@@ -11,9 +11,6 @@ public class stringObject extends constObject {
         if (!(type instanceof arrayType)) {
             throw new internalError(null, "String type wrong");
         } else {
-            if (((arrayType) type).length != val.length()) {
-                throw new internalError(null, "String type wrong");
-            }
             if (!(((arrayType) type).elemType instanceof integerType)) {
                 throw new internalError(null, "String type wrong");
             } else {
@@ -29,6 +26,9 @@ public class stringObject extends constObject {
     public stringObject(Type type, String val) {
         this(type);
         this.val = val;
+        if (((arrayType) type).length != val.length()) {
+            throw new internalError(null, "String type wrong");
+        }
     }
 
     public stringObject(String val) {
@@ -43,6 +43,6 @@ public class stringObject extends constObject {
 
     @Override
     public String toString() {
-        
+        return "constant " + type.toString() + " " + getText();
     }
 }

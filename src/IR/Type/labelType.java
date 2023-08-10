@@ -3,7 +3,7 @@ package IR.Type;
 import jdk.jfr.Percentage;
 
 public class labelType extends Type {
-    public String name;
+    String name;
 
     public labelType(String name) {
         this.name = name;
@@ -12,6 +12,10 @@ public class labelType extends Type {
     @Override
     public int size() {
         return 0;
+    }
+
+    public String getText() {
+        return "%" + name;
     }
 
     @Override
