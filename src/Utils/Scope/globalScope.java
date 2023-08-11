@@ -21,8 +21,7 @@ public class globalScope extends Scope {
     }
 
     public Type getBasic(String name, Position pos) {
-        if (basic.containsKey(name)) return basic.get(name);
-        else return null;
+        return basic.getOrDefault(name, null);
         //throw new semanticError(pos, "no such type: " + name);
     }
 }

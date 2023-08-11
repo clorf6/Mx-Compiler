@@ -508,10 +508,6 @@ public class SemanticChecker implements ASTVisitor {
         }
         it.thenExpr.accept(this);
         it.elseExpr.accept(this);
-        if (it.thenExpr.type instanceof voidType || it.elseExpr.type instanceof voidType ||
-            it.thenExpr.type instanceof funcType || it.elseExpr.type instanceof funcType) {
-            throw new semanticError(it.pos, "Function participate in ternary operation");
-        }
         if (it.thenExpr.type instanceof nullType) {
             if (it.elseExpr.type instanceof nullType) {
                 it.type = NullType;

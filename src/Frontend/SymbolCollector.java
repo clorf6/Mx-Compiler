@@ -91,15 +91,17 @@ public class SymbolCollector implements ASTVisitor {
 
     @Override
     public void visit(classDefNode it) {
-        global.putBasic(it.name, new classType(it.name), it.pos);
+        classType nowClass = new classType(it.name);
         for (funcDefNode func : it.funcDef) {
             global.putBasic(it.name + "::" + func.name, new funcType(func), func.pos);
         }
         for (varDefNode VarDef : it.varDef) {
             for (varNode Var : VarDef.var) {
+                nowClass.vars.add(VarDef.typename.type);
                 global.putBasic(it.name + "::" + Var.name, VarDef.typename.type, Var.pos);
             }
         }
+        global.putBasic(it.name, nowClass, it.pos);
     }
 
     @Override

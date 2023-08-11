@@ -20,6 +20,8 @@ public class Main {
         String name = "test.txt";
         InputStream input = new FileInputStream(name);
 
+        //InputStream input = System.in;
+
         try {
             rootNode ASTRoot;
             globalScope gScope = new globalScope(null);
