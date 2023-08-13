@@ -1,5 +1,9 @@
 lexer grammar MxLexer;
 
+@header {
+package Parser;
+}
+
 Annotation: (BlockAnnotation | LineAnnotation) -> skip;
 
 BlockAnnotation: '/*' .*? '*/';
