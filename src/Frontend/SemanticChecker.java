@@ -28,7 +28,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(rootNode it) {
-        var mainFunc = global.getBasic("main", it.pos);
+        var mainFunc = global.getBasic("main");
         if (mainFunc == null) {
             throw new semanticError(it.pos, "No main function");
         }
@@ -41,15 +41,13 @@ public class SemanticChecker implements ASTVisitor {
         if (!((funcType) mainFunc).func.param.isEmpty()) {
             throw new semanticError(it.pos, "Main functions's param isn't empty");
         }
-        it.varDef.forEach(vd -> vd.accept(this));
-        it.classDef.forEach(cd -> cd.accept(this));
-        it.funcDef.forEach(fd -> fd.accept(this));
+        it.Def.forEach(cd -> cd.accept(this));
     }
 
     @Override
     public void visit(varDefNode it) {
         String name = getName(it.typename.type, it.pos);
-        currentType = global.getBasic(name, it.pos);
+        currentType = global.getBasic(name);
         if (currentType == null) {
             throw new semanticError(it.pos, "Variables type doesn't exsit");
         }
@@ -77,7 +75,7 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(classDefNode it) {
         currentScope = new Scope(currentScope);
         currentClass = new classType(it.name);
-        Type constructFunc = global.getBasic(it.name + "::" + it.name, it.pos);
+        Type constructFunc = global.getBasic(it.name + "::" + it.name);
         if (constructFunc != null) {
             if (!(constructFunc instanceof funcType)) {
                 throw new semanticError(it.pos, "The constructor isn't a function");
@@ -114,7 +112,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(varNode it) {
-        if (global.getBasic(it.name, it.pos) instanceof funcType) {
+        if (global.getBasic(it.name) instanceof funcType) {
             throw new semanticError(it.pos, "Variables and functions have the same name");
         }
         if (it.init != null) {
@@ -129,21 +127,21 @@ public class SemanticChecker implements ASTVisitor {
                 }
             }
         }
-        currentScope.put(it.name, currentType, it.pos);
+        currentScope.putType(it.name, currentType, it.pos);
     }
 
     @Override
     public void visit(paramNode it) {
-        if (global.getBasic(getName(it.typename.type, it.pos), it.pos) == null) {
+        if (global.getBasic(getName(it.typename.type, it.pos)) == null) {
             throw new semanticError(it.pos, "Parameters type doesn't exist");
         }
-        currentScope.put(it.name, it.typename.type, it.pos);
+        currentScope.putType(it.name, it.typename.type, it.pos);
     }
 
     @Override
     public void visit(varDefStmtNode it) {
         String name = getName(it.typename.type, it.pos);
-        currentType = global.getBasic(name, it.pos);
+        currentType = global.getBasic(name);
         if (currentType == null) {
             throw new semanticError(it.pos, "Variables type doesn't exsit");
         }
@@ -280,7 +278,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(varExprNode it) {
-        it.type = currentScope.get(it.name, true);
+        it.type = currentScope.getType(it.name, true);
         if (it.type == null) {
             throw new semanticError(it.pos, "Variable is not defined");
         }
@@ -298,10 +296,10 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(funcExprNode it) {
         Type func = null;
         if (currentClass != null) {
-            func = global.getBasic(currentClass.className + "::" + it.name, it.pos);
+            func = global.getBasic(currentClass.className + "::" + it.name);
         }
         if (func == null) {
-            func = global.getBasic(it.name, it.pos);
+            func = global.getBasic(it.name);
         }
         if (func == null) {
             throw new semanticError(it.pos, "Function is not defined");
@@ -334,7 +332,7 @@ public class SemanticChecker implements ASTVisitor {
         if (!(it.expr.type instanceof classType)) {
             throw new semanticError(it.pos, "Class wrong");
         }
-        it.type = global.getBasic(((classType) it.expr.type).className + "::" + it.name, it.pos);
+        it.type = global.getBasic(((classType) it.expr.type).className + "::" + it.name);
         if (it.type == null) {
             throw new semanticError(it.pos, "Member variable is not defined");
         }
@@ -348,11 +346,11 @@ public class SemanticChecker implements ASTVisitor {
         }
         Type func;
         if (it.expr.type instanceof classType) {
-            func = global.getBasic(((classType) it.expr.type).className + "::" + it.func.name, it.pos);
+            func = global.getBasic(((classType) it.expr.type).className + "::" + it.func.name);
         } else if (it.expr.type instanceof arrayType) {
-            func = global.getBasic("#array::" + it.func.name, it.pos);
+            func = global.getBasic("_array::" + it.func.name);
         } else {
-            func = global.getBasic("string::" + it.func.name, it.pos);
+            func = global.getBasic("string::" + it.func.name);
         }
         if (func == null) {
             throw new semanticError(it.pos, "Function is not defined");
@@ -392,7 +390,7 @@ public class SemanticChecker implements ASTVisitor {
     @Override
     public void visit(newExprNode it) {
         if (it.dim == 0) {
-            it.type = global.getBasic(getName(it.typename, it.pos), it.pos);
+            it.type = global.getBasic(getName(it.typename, it.pos));
             if (it.type == null) {
                 throw new semanticError(it.pos, "Wrong type int new expression");
             }

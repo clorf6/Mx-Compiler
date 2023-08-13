@@ -2,6 +2,8 @@ import AST.rootNode;
 import Frontend.ASTBuilder;
 import Frontend.SemanticChecker;
 import Frontend.SymbolCollector;
+import Frontend.IRBuilder;
+import IR.Program;
 import Parser.MxLexer;
 import Parser.MxParser;
 import Utils.Scope.*;
@@ -17,10 +19,10 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception{
 
-        String name = "test.txt";
-        InputStream input = new FileInputStream(name);
+//        String name = "test.txt";
+//        InputStream input = new FileInputStream(name);
 
-        //InputStream input = System.in;
+        InputStream input = System.in;
 
         try {
             rootNode ASTRoot;
@@ -36,8 +38,9 @@ public class Main {
             ASTRoot = (rootNode)astBuilder.visit(parseTreeRoot);
             new SymbolCollector(gScope).visit(ASTRoot);
             new SemanticChecker(gScope).visit(ASTRoot);
-//            mainFn f = new mainFn();
-//            new IRBuilder(f, gScope).visit(ASTRoot);
+//            Program program = new Program();
+//            new IRBuilder(program, gScope).visit(ASTRoot);
+//            System.out.println(program);
 //            // new IRPrinter(System.out).visitFn(f);
 //
 //            AsmFn asmF = new AsmFn();

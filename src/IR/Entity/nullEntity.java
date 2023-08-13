@@ -2,12 +2,13 @@ package IR.Entity;
 
 import IR.Type.*;
 import Utils.Error.internalError;
+import Utils.Position;
 
 public class nullEntity extends constEntity {
     public nullEntity(Type type) {
         super(type);
         if (!(type instanceof pointerType)) {
-            throw new internalError(null, "Null type wrong");
+            throw new internalError(new Position(0, 0), "Null type wrong");
         }
     }
 

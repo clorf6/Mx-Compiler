@@ -27,6 +27,15 @@ public class Block {
         }
     }
 
+    public String toString() {
+        StringBuilder ret = new StringBuilder(name.getText() + ":\n");
+        for (Instruction ins : inst) {
+            ret.append("\t").append(ins.toString()).append("\n");
+        }
+        ret.append("\n");
+        return ret.toString();
+    }
+
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
     }

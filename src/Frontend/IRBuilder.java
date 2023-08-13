@@ -14,14 +14,18 @@ import IR.Type.*;
 import IR.Entity.*;
 import IR.Instruction.*;
 
+import java.lang.reflect.AnnotatedArrayType;
 import java.util.ArrayList;
 
 public class IRBuilder implements ASTVisitor {
     globalScope global;
     Scope currentScope;
+    AST.Type.Type currentType;
+    Program program;
 
-    public IRBuilder(globalScope global) {
+    public IRBuilder(Program program, globalScope global) {
         this.currentScope = this.global = global;
+        this.program = program;
     }
 
     IR.Type.Type convertType(AST.Type.Type type, Position pos) {
@@ -50,18 +54,44 @@ public class IRBuilder implements ASTVisitor {
         }
     }
 
-    public void init() {
+    ArrayList<localVarEntity> getParam(funcDefNode func, Position pos) {
+        ArrayList<localVarEntity> param = new ArrayList<>();
+        for (paramNode par : func.param) {
+            param.add(new localVarEntity(convertType(par.typename.type, pos), par.name));
+        }
+        return param;
+    }
 
+    public void init(Position pos) {
+        for (var entry : global.basic.entrySet()) {
+            AST.Type.Type type = entry.getValue();
+            if (type instanceof funcType) {
+                funcDefNode func = ((funcType) type).func;
+                var param = getParam(func, pos);
+                var retType = convertType(func.typename.type, pos);
+                program.funcs.add(new Function(func.name, retType, param));
+                program.globalInsts.add(new declare(func.name, retType, param));
+            } else if (type instanceof classType) {
+                program.globalInsts.add(new classdef
+                        ((IR.Type.classType) ((pointerType) convertType(type, pos)).elemType));
+            }
+        }
     }
 
     @Override
     public void visit(rootNode it) {
-        init();
+        init(it.pos);
+        it.Def.forEach(def -> def.accept(this));
+        program.funcs.get(0).block.get(0).add(
+            new ret(new localVarEntity(new IR.Type.voidType(), null))
+        );
     }
 
     @Override
     public void visit(varDefNode it) {
-
+        currentType = it.typename.type;
+        it.var.forEach(v -> v.accept(this));
+        currentType = null;
     }
 
     @Override
@@ -76,7 +106,31 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(varNode it) {
+        globalVarEntity now = new globalVarEntity(convertType(currentType, it.pos), it.name);
+        if (it.init != null) it.init.accept(this);
+        if (currentScope instanceof globalScope) {
+            if (currentType instanceof intType) {
+                if (it.init != null) {
+                    program.globalInsts.add(new global(now, (intEntity) it.init.entity));
+                } else {
+                    program.globalInsts.add(new global(now, new intEntity(0)));
+                }
+            } else if (currentType instanceof boolType) {
+                if (it.init != null) {
+                    program.globalInsts.add(new global(now, (boolEntity) it.init.entity));
+                } else {
+                    program.globalInsts.add(new global(now, new boolEntity(false)));
+                }
+            } else {
+                if (it.init != null) {
 
+                } else {
+                    program.globalInsts.add(new global(now, new nullEntity(now.type)));
+                }
+            }
+        } else {
+
+        }
     }
 
     @Override

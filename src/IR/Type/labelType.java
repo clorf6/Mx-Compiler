@@ -15,7 +15,7 @@ public class labelType extends Type {
     }
 
     public String getText() {
-        return "%" + name;
+        return name;
     }
 
     @Override

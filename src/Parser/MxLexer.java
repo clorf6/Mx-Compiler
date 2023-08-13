@@ -1,7 +1,5 @@
-// Generated from D:/clorf/Code/SJTU/PPCA/Mx Compiler/src/Parser\MxLexer.g4 by ANTLR 4.12.0
-
+// Generated from D:/OneDrive/clorf/Code/SJTU/PPCA/Mx Compiler/src/Parser\MxLexer.g4 by ANTLR 4.12.0
 package Parser;
-
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

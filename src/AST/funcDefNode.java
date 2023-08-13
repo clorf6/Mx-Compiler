@@ -4,7 +4,7 @@ import Utils.Position;
 
 import java.util.ArrayList;
 
-public class funcDefNode extends ASTNode {
+public class funcDefNode extends defNode {
     public typeNode typename;
     public String name;
     public ArrayList<paramNode> param;

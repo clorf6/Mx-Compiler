@@ -1,8 +1,8 @@
 package Utils.Scope;
 
+import AST.Type.Type;
 import Utils.Error.*;
 import Utils.Position;
-import AST.Type.*;
 
 import java.util.HashMap;
 
@@ -20,8 +20,7 @@ public class globalScope extends Scope {
         basic.put(name, type);
     }
 
-    public Type getBasic(String name, Position pos) {
+    public Type getBasic(String name) {
         return basic.getOrDefault(name, null);
-        //throw new semanticError(pos, "no such type: " + name);
     }
 }

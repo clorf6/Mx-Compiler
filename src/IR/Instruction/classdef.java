@@ -24,7 +24,7 @@ public class classdef extends Instruction {
                 ret.append(", ");
             }
         }
-        ret.append("}");
+        ret.append(" }");
         return ret.toString();
     }
 }

@@ -5,16 +5,11 @@ import Utils.*;
 import java.util.ArrayList;
 
 public class rootNode extends ASTNode{
-    public ArrayList<funcDefNode> funcDef;
-    public ArrayList<classDefNode> classDef;
-    public ArrayList<varDefNode> varDef;
+    public ArrayList<defNode> Def;
 
-    public rootNode(Position pos, ArrayList<funcDefNode> funcDef,
-                    ArrayList<classDefNode> classDef, ArrayList<varDefNode> varDef) {
+    public rootNode(Position pos, ArrayList<defNode> Def) {
         super(pos);
-        this.classDef = classDef;
-        this.funcDef = funcDef;
-        this.varDef = varDef;
+        this.Def = Def;
     }
 
     @Override

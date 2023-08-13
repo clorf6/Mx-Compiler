@@ -17,6 +17,8 @@ public interface IRVisitor {
 
     void visit(global it);
 
+    void visit(declare it);
+
     void visit(classdef it);
 
     void visit(getelementptr it);

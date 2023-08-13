@@ -60,28 +60,27 @@ public class SymbolCollector implements ASTVisitor {
             add(paramInt);
         }}, null
         )), pos);
-        funcDefNode Strlength = new funcDefNode(pos, IntNode, "length", new ArrayList<>(), null);
-        funcDefNode Strsubstring = new funcDefNode(pos, StringNode, "substring", new ArrayList<>() {{
+        funcDefNode Strlength = new funcDefNode(pos, IntNode, "string::length", new ArrayList<>(), null);
+        funcDefNode Strsubstring = new funcDefNode(pos, StringNode, "string::substring", new ArrayList<>() {{
             add(new paramNode(pos, IntNode, "left"));
             add(new paramNode(pos, IntNode, "right"));
         }}, null);
-        funcDefNode StrparseInt = new funcDefNode(pos, IntNode, "parseInt", new ArrayList<>(), null);
-        funcDefNode Strord = new funcDefNode(pos, IntNode, "ord", new ArrayList<>() {{
+        funcDefNode StrparseInt = new funcDefNode(pos, IntNode, "string::parseInt", new ArrayList<>(), null);
+        funcDefNode Strord = new funcDefNode(pos, IntNode, "string::ord", new ArrayList<>() {{
             add(new paramNode(pos, IntNode, "pos"));
         }}, null);
         global.putBasic("string::length", new funcType(Strlength), pos);
         global.putBasic("string::substring", new funcType(Strsubstring), pos);
         global.putBasic("string::parseInt", new funcType(StrparseInt), pos);
         global.putBasic("string::ord", new funcType(Strord), pos);
-        funcDefNode Arraysize = new funcDefNode(pos, IntNode, "size", new ArrayList<>(), null);
-        global.putBasic("#array::size", new funcType(Arraysize), pos);
+        funcDefNode Arraysize = new funcDefNode(pos, IntNode, "_array::size", new ArrayList<>(), null);
+        global.putBasic("_array::size", new funcType(Arraysize), pos);
     }
 
     @Override
     public void visit(rootNode it) {
         init(it.pos);
-        it.funcDef.forEach(fd -> fd.accept(this));
-        it.classDef.forEach(cd -> cd.accept(this));
+        it.Def.forEach(cd -> cd.accept(this));
     }
 
     @Override

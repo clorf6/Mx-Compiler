@@ -28,4 +28,7 @@ public class binaryExprNode extends ExprNode {
     public String toString() {
         return "binaryExprNode";
     }
+
+    public static class defNode {
+    }
 }

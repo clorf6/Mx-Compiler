@@ -15,6 +15,15 @@ public class Global {
         insts.add(inst);
     }
 
+    public String toString() {
+        StringBuilder ret = new StringBuilder();
+        for (Instruction ins : insts) {
+            ret.append(ins).append("\n");
+        }
+        ret.append("\n");
+        return ret.toString();
+    }
+
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
     }

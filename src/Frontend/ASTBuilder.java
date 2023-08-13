@@ -19,25 +19,17 @@ public class ASTBuilder extends MxParserBaseVisitor<ASTNode> {
 
     @Override
     public ASTNode visitProgram(MxParser.ProgramContext ctx) {
-        ArrayList<funcDefNode> funcDefNodes = new ArrayList<>();
-        for (ParserRuleContext funcDef : ctx.func_def()) {
-            if (funcDef != null) {
-                funcDefNodes.add((funcDefNode) visit(funcDef));
+        ArrayList<defNode> DefNodes = new ArrayList<>();
+        for (var Def : ctx.children) {
+            if (Def instanceof MxParser.Var_defContext) {
+                DefNodes.add((varDefNode) visit(Def));
+            } else if (Def instanceof MxParser.Func_defContext) {
+                DefNodes.add((funcDefNode) visit(Def));
+            } else if (Def instanceof MxParser.Class_defContext) {
+                DefNodes.add((classDefNode) visit(Def));
             }
         }
-        ArrayList<classDefNode> classDefNodes = new ArrayList<>();
-        for (ParserRuleContext classDef : ctx.class_def()) {
-            if (classDef != null) {
-                classDefNodes.add((classDefNode) visit(classDef));
-            }
-        }
-        ArrayList<varDefNode> varDefNodes = new ArrayList<>();
-        for (ParserRuleContext varDef : ctx.var_def()) {
-            if (varDef != null) {
-                varDefNodes.add((varDefNode) visit(varDef));
-            }
-        }
-        return new rootNode(new Position(ctx), funcDefNodes, classDefNodes, varDefNodes);
+        return new rootNode(new Position(ctx), DefNodes);
     }
 
     @Override

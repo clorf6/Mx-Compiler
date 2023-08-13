@@ -3,7 +3,7 @@ package AST;
 import Utils.*;
 import java.util.ArrayList;
 
-public class varDefNode extends ASTNode {
+public class varDefNode extends defNode {
     public typeNode typename;
     public ArrayList<varNode> var;
 

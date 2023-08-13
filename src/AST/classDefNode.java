@@ -4,7 +4,7 @@ import Utils.Position;
 
 import java.util.ArrayList;
 
-public class classDefNode extends ASTNode {
+public class classDefNode extends defNode {
     public String name;
     public ArrayList<varDefNode> varDef;
 
