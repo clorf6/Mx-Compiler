@@ -92,6 +92,8 @@ public class IRBuilder implements ASTVisitor {
                     funcDefNode func = ((funcType) type).func;
                     Function function = newFunc(func);
                     if (flag == 1) function.param.add(0, new localVarEntity(StrType, "str"));
+                    if (flag == 2) function.param.add(new localVarEntity(StrType, "arr"));
+                    global.putFunc(name, function, pos);
                     program.globalInsts.add(new declare(name, function.retType, function.param));
                 }
             } else if (type instanceof classType) {
@@ -110,13 +112,12 @@ public class IRBuilder implements ASTVisitor {
             add(new localVarEntity(StrType, "rhs"));
         }};
         program.globalInsts.add(new declare("string.add", StrType, stringOpParam));
-        program.globalInsts.add(new declare("string.le", StrType, stringOpParam));
-        program.globalInsts.add(new declare("string.leq", StrType, stringOpParam));
-        program.globalInsts.add(new declare("string.ge", StrType, stringOpParam));
-        program.globalInsts.add(new declare("string.geq", StrType, stringOpParam));
-        program.globalInsts.add(new declare("string.eq", StrType, stringOpParam));
-        program.globalInsts.add(new declare("string.neq", StrType, stringOpParam));
-        /*To Do---string opearation*/
+        program.globalInsts.add(new declare("string.le", i1Type, stringOpParam));
+        program.globalInsts.add(new declare("string.leq", i1Type, stringOpParam));
+        program.globalInsts.add(new declare("string.ge", i1Type, stringOpParam));
+        program.globalInsts.add(new declare("string.geq", i1Type, stringOpParam));
+        program.globalInsts.add(new declare("string.eq", i1Type, stringOpParam));
+        program.globalInsts.add(new declare("string.neq", i1Type, stringOpParam));
     }
 
     @Override
@@ -327,16 +328,17 @@ public class IRBuilder implements ASTVisitor {
                 boolean val = ((boolEntity) it.cond.get(i).entity).val;
                 if (val) flag = 1;
             } else {
-                if (i + 1 >= it.Stmt.size()) flag = 1;
-                else flag = 2;
+                if (i + 1 >= it.Stmt.size()) flag = 2;
+                else flag = 3;
             }
-            if (flag == 1) {
+            if (flag > 0 && flag < 3) {
                 Block thenBlock = new Block("if.then" + ++count);
-                currentBlock.add(new br(thenBlock.name, appear));
+                if (flag == 1) currentBlock.add(new br(thenBlock.name, appear));
+                else currentBlock.add(new br(it.cond.get(i).entity, thenBlock.name, endBlock.name, appear, it.pos));
                 currentFunction.add(currentBlock, appear);
                 enterStmt(thenBlock, endBlock, it.Stmt.get(i), true);
                 currentBlock = endBlock;
-            } else if (flag == 2) {
+            } else if (flag == 3) {
                 Block thenBlock = new Block("if.then" + ++count);
                 Block elseBlock = new Block("if.else" + ++count);
                 currentBlock.add(new br(it.cond.get(i).entity, thenBlock.name, elseBlock.name, appear, it.pos));
@@ -499,23 +501,27 @@ public class IRBuilder implements ASTVisitor {
         return ret;
     }
 
+    localVarEntity enterMemberVar(Entity This, String name, Position Pos) {
+        IR.Type.classType now = (IR.Type.classType) ((pointerType) This.type).elemType;
+        now = global.getClass(now.name);
+        int pos = now.pos.get(name);
+        Type type = now.typelist.get(pos);
+        localVarEntity addr = getTempVar(new pointerType(type), "addr");
+        ArrayList<Entity> idx = new ArrayList<>() {{
+            add(new intEntity(0));
+            add(new intEntity(pos));
+        }};
+        currentBlock.add(new getelementptr(addr, This, idx, Pos));
+        return addr;
+    }
+
     @Override
     public void visit(varExprNode it) {
         varEntity var = currentScope.getVar(it.name, true);
         if (!var.member) {
             it.addr = var;
         } else {
-            localVarEntity This = currentFunction.param.get(0);
-            IR.Type.classType now = (IR.Type.classType) ((pointerType) This.type).elemType;
-            int pos = now.pos.get(it.name);
-            Type type = now.typelist.get(pos);
-            localVarEntity addr = getTempVar(new pointerType(type), "addr");
-            ArrayList<Entity> idx = new ArrayList<>() {{
-                add(new intEntity(0));
-                add(new intEntity(pos));
-            }};
-            currentBlock.add(new getelementptr(addr, This, idx, it.pos));
-            it.addr = addr;
+            it.addr = enterMemberVar(currentFunction.param.get(0), it.name, it.pos);
         }
         if (it.getEntity) it.entity = getValue(it.addr, it.pos);
     }
@@ -538,7 +544,12 @@ public class IRBuilder implements ASTVisitor {
             if (currentThis != null) args.add(currentThis);
             else args.add(currentFunction.param.get(0));
         }
-        for (ExprNode arg : it.args) args.add(arg.entity);
+        for (ExprNode arg : it.args) {
+            if (arg.entity instanceof stringEntity) {
+                arg.entity = storeStr((stringEntity) arg.entity);
+            }
+            args.add(arg.entity);
+        }
         if (!(func.retType instanceof IR.Type.voidType))  {
             localVarEntity res = getTempVar(func.retType, "var");
             currentBlock.add(new call(res, funcName, args));
@@ -549,30 +560,46 @@ public class IRBuilder implements ASTVisitor {
     @Override
     public void visit(memberVarExprNode it) {
         it.expr.accept(this);
-        IR.Type.classType now = (IR.Type.classType) ((pointerType) it.expr.entity.type).elemType;
-        now = global.getClass(now.name);
-        int pos = now.pos.get(it.name);
-        Type type = now.typelist.get(pos);
-        localVarEntity addr = getTempVar(new pointerType(type), "addr");
-        ArrayList<Entity> idx = new ArrayList<>() {{
-            add(new intEntity(0));
-            add(new intEntity(pos));
-        }};
-        currentBlock.add(new getelementptr(addr, it.expr.entity, idx, it.pos));
-        it.addr = addr;
-        if (it.getEntity) it.entity = getValue(addr, it.pos);
+        it.addr = enterMemberVar(it.expr.entity, it.name, it.pos);
+        if (it.getEntity) it.entity = getValue(it.addr, it.pos);
     }
 
     @Override
     public void visit(memberFuncExprNode it) {
         it.expr.accept(this);
-        IR.Type.classType tempClass = currentClass;
-        currentClass = (IR.Type.classType) ((pointerType) it.expr.entity.type).elemType;
-        currentClass = global.getClass(currentClass.name);
-        currentThis = it.expr.entity;
-        it.func.accept(this);
-        currentThis = null;
-        currentClass = tempClass;
+        Type type = ((pointerType) it.expr.entity.type).elemType;
+        if (type.equals(i8Type)) {
+            String funcName = "string." + it.func.name;
+            Function func = global.getFunc(funcName);
+            localVarEntity tmp = getTempVar(func.retType, "ret");
+            ArrayList<Entity> args = new ArrayList<>() {{
+                add(it.expr.entity);
+            }};
+            it.func.args.forEach(arg -> {
+                arg.accept(this);
+                if (arg.entity instanceof stringEntity) {
+                    arg.entity = storeStr((stringEntity) arg.entity);
+                }
+                args.add(arg.entity);
+            });
+            currentBlock.add(new call(tmp, "string." + it.func.name, args));
+            it.entity = tmp;
+        } else if (type instanceof IR.Type.classType) {
+            IR.Type.classType tempClass = currentClass;
+            currentClass = (IR.Type.classType) type;
+            currentClass = global.getClass(currentClass.name);
+            currentThis = it.expr.entity;
+            it.func.accept(this);
+            currentThis = null;
+            currentClass = tempClass;
+        } else {
+            if (!Objects.equals(it.func.name, "size")) throw new internalError(it.pos, "Wrong builtin function");
+            localVarEntity tmp = getTempVar(i32Type, "ret");
+            currentBlock.add(new call(tmp, "_array.size", new ArrayList<>() {{
+                add(it.expr.entity);
+            }}));
+            it.entity = tmp;
+        }
     }
 
     @Override
@@ -757,6 +784,31 @@ public class IRBuilder implements ASTVisitor {
         it.entity = it.expr.entity;
     }
 
+    public varEntity LogicOp(binaryExprNode it, boolean flag) { // 0(&&), 1(||)
+        Block thenBlock = new Block("land.then");
+        Block trueBlock = new Block("land.true");
+        Block falseBlock = new Block("land.false");
+        Block endBlock = new Block("land.end");
+        localVarEntity tmp = new localVarEntity(new pointerType(i1Type), "var");
+        currentBlock.add(new alloca(tmp, i1Type, it.pos));
+        if (!flag) currentBlock.add(new br(it.lhs.entity, thenBlock.name, falseBlock.name, appear, it.pos));
+        else currentBlock.add(new br(it.lhs.entity, trueBlock.name, thenBlock.name, appear, it.pos));
+        currentFunction.add(currentBlock, appear);
+        currentBlock = thenBlock;
+        it.rhs.accept(this);
+        currentBlock.add(new br(it.rhs.entity, trueBlock.name, falseBlock.name, appear, it.pos));
+        currentFunction.add(currentBlock, appear);
+        currentBlock = trueBlock;
+        currentBlock.add(new store(new boolEntity(true), tmp, it.pos));
+        currentBlock.add(new br(endBlock.name, appear));
+        currentFunction.add(currentBlock, appear);
+        currentBlock = falseBlock;
+        currentBlock.add(new store(new boolEntity(false), tmp, it.pos));
+        currentBlock.add(new br(endBlock.name, appear));
+        currentFunction.add(currentBlock, appear);
+        currentBlock = endBlock;
+        return tmp;
+    }
     @Override
     public void visit(binaryExprNode it) {
         it.lhs.accept(this);
@@ -800,7 +852,12 @@ public class IRBuilder implements ASTVisitor {
                         Entity l = it.lhs.entity, r = it.rhs.entity;
                         if (l instanceof stringEntity) l = storeStr((stringEntity) l);
                         if (r instanceof stringEntity) r = storeStr((stringEntity) r);
-                        /*To Do--调用string_plus，l,r*/
+                        localVarEntity tmp = getTempVar(StrType, "var");
+                        ArrayList<Entity> args = new ArrayList<>();
+                        args.add(l);
+                        args.add(r);
+                        currentBlock.add(new call(tmp, "string.add", args));
+                        it.entity = tmp;
                     } else {
                         Entity tmp = getTempVar(it.lhs.entity.type, "binaryCalc");
                         currentBlock.add(new binary(tmp, it.lhs.entity, it.opCode, it.rhs.entity, it.pos));
@@ -850,7 +907,12 @@ public class IRBuilder implements ASTVisitor {
                         Entity l = it.lhs.entity, r = it.rhs.entity;
                         if (l instanceof stringEntity) l = storeStr((stringEntity) l);
                         if (r instanceof stringEntity) r = storeStr((stringEntity) r);
-                        /*To Do--调用string_comp，l,r*/
+                        localVarEntity tmp = getTempVar(i1Type, "var");
+                        ArrayList<Entity> args = new ArrayList<>();
+                        args.add(l);
+                        args.add(r);
+                        currentBlock.add(new call(tmp, "string." + it.opCode.name().toLowerCase(), args));
+                        it.entity = tmp;
                     } else {
                         Entity tmp = getTempVar(i1Type, "binaryComp");
                         currentBlock.add(new icmp(tmp, it.opCode, it.lhs.entity, it.rhs.entity, it.pos));
@@ -859,19 +921,37 @@ public class IRBuilder implements ASTVisitor {
                 }
             }
             case And -> {
-                if (!((boolEntity) it.lhs.entity).val) it.entity = new boolEntity(false);
-                else {
-                    it.rhs.accept(this);
-                    if (!((boolEntity) it.rhs.entity).val) it.entity = new boolEntity(false);
-                    it.entity = new boolEntity(true);
+                if (it.lhs.entity instanceof boolEntity) {
+                    if (!((boolEntity) it.lhs.entity).val) it.entity = new boolEntity(false);
+                    else {
+                        it.rhs.accept(this);
+                        if (it.rhs.entity instanceof boolEntity) {
+                            if (!((boolEntity) it.rhs.entity).val) it.entity = new boolEntity(false);
+                            else it.entity = new boolEntity(true);
+                        }
+                    }
                 }
+                if (it.entity == null) {
+                    it.addr = LogicOp(it, false);
+                    it.entity = getValue(it.addr, it.pos);
+                }
+
             }
             case Or -> {
-                if (((boolEntity) it.lhs.entity).val) it.entity = new boolEntity(true);
-                else {
-                    it.rhs.accept(this);
-                    if (((boolEntity) it.rhs.entity).val) it.entity = new boolEntity(true);
-                    it.entity = new boolEntity(false);
+                if (it.lhs.entity instanceof boolEntity) {
+                    if (((boolEntity) it.lhs.entity).val) it.entity = new boolEntity(true);
+                    else {
+                        it.rhs.accept(this);
+                        if (it.rhs.entity instanceof boolEntity) {
+                            if (((boolEntity) it.rhs.entity).val) it.entity = new boolEntity(true);
+                            else it.entity = new boolEntity(false);
+                        }
+
+                    }
+                }
+                if (it.entity == null) {
+                    it.addr = LogicOp(it, true);
+                    it.entity = getValue(it.addr, it.pos);
                 }
             }
         }

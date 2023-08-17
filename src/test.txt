@@ -1,27 +1,37 @@
 /*
-Test Package: Sema_Local_Preview
-Test Target: Basic
-Author: 14' Tiancheng Xie
-Time: 2019-10-20
-Verdict: Fail
-Comment: Variable is not available for back reference.(a is not defined, Chap 13.1)
-Origin Package: Semantic Pretest
+Test Package: Codegen
+Author: Pikachu
+Time: 2020-02-03
+Input:
+=== input ===
+3
+njfngnrurunrgunrunvurn
+jfvnjfdnvjdbfvsbdubruvbubvkdb
+ksdnvidnviudbvibd
+=== end ===
+Output:
+=== output ===
+n20n
+j27b
+k15d
+=== end ===
+ExitCode: 0
+InstLimit: -1
+Origin Package: Codeforces 71A #53307259
 */
+int t,l,i;
+string s;
+int main(){
+	t = getInt();
+    for(i=0;i<t;++i){
+        s = getString();
+		l = s.length();
+		if(l > 10)
+            println(s.substring(0, 1) + toString(l-2) + s.substring(l-1, l));
+			// printf("%c%d%c\n",s[0],l-2,s[l-1]);
+		else
+			// printf("%s\n",s);
+            println(s);
+	}
 
-class test {
-    int p;
-    bool c;
-    int q;
-    test() {
-        p = 2;
-        c = true;
-        q = 3;
-    }
-};
-int main()
-{
-    test a = new test();
-    int x = 0;
-    if (a.c) x = 1;
-    return x;
 }
