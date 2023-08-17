@@ -7,24 +7,21 @@ Verdict: Fail
 Comment: Variable is not available for back reference.(a is not defined, Chap 13.1)
 Origin Package: Semantic Pretest
 */
-class A {
-    int x;
-    int y;
+
+class test {
+    int p;
+    bool c;
+    int q;
+    test() {
+        p = 2;
+        c = true;
+        q = 3;
+    }
 };
-
-A sss(int r) {
-    A p;
-    p.x = p.x + r;
-    return p;
-}
-
-int r=5;
-bool s=true;
-A ppp;
-string x;
-
 int main()
 {
-	int a = 0;
-	return a;
+    test a = new test();
+    int x = 0;
+    if (a.c) x = 1;
+    return x;
 }

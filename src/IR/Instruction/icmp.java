@@ -5,18 +5,19 @@ import IR.Entity.Entity;
 import IR.Entity.boolEntity;
 import AST.binaryExprNode;
 import Utils.Error.internalError;
+import Utils.Position;
 
 public class icmp extends Instruction {
     public enum compOp {
         eq, ne, sgt, sge, slt, sle
     }
 
-    boolEntity res;
+    Entity res;
     Entity op1, op2;
     compOp op;
 
-    public icmp(boolEntity res, binaryExprNode.binaryOpType op,
-                Entity op1, Entity op2) {
+    public icmp(Entity res, binaryExprNode.binaryOpType op,
+                Entity op1, Entity op2, Position pos) {
         this.res = res;
         this.op1 = op1;
         this.op2 = op2;
@@ -27,7 +28,7 @@ public class icmp extends Instruction {
             case Leq -> compOp.sle;
             case Ge -> compOp.sgt;
             case Geq -> compOp.sge;
-            default -> throw new internalError(null, "Icmp instruction type wrong");
+            default -> throw new internalError(pos, "Icmp instruction type wrong");
         };
     }
 

@@ -17,6 +17,10 @@ public interface IRVisitor {
 
     void visit(global it);
 
+    void visit(constant it);
+
+    void visit(bitcast it);
+
     void visit(declare it);
 
     void visit(classdef it);
@@ -36,4 +40,6 @@ public interface IRVisitor {
     void visit(Global it);
 
     void visit(Program it);
+
+    void visit(Class it);
 }

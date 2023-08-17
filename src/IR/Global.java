@@ -27,4 +27,7 @@ public class Global {
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
     }
+
+    public static class Class {
+    }
 }

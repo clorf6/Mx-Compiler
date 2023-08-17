@@ -75,7 +75,7 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(classDefNode it) {
         currentScope = new Scope(currentScope);
         currentClass = new classType(it.name);
-        Type constructFunc = global.getBasic(it.name + "::" + it.name);
+        Type constructFunc = global.getBasic(it.name + "." + it.name);
         if (constructFunc != null) {
             if (!(constructFunc instanceof funcType)) {
                 throw new semanticError(it.pos, "The constructor isn't a function");
@@ -154,9 +154,9 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(blockStmtNode it) {
-        currentScope = new Scope(currentScope);
+        if (it.newScope) currentScope = new Scope(currentScope);
         it.stmt.forEach(sm -> sm.accept(this));
-        currentScope = currentScope.fatherScope;
+        if (it.newScope) currentScope = currentScope.fatherScope;
     }
 
     @Override
@@ -193,6 +193,8 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override
     public void visit(forDefStmtNode it) {
+        currentScope = new Scope(currentScope);
+        currentScope.inloop = true;
         if (it.varDef != null) {
             it.varDef.accept(this);
         }
@@ -208,14 +210,17 @@ public class SemanticChecker implements ASTVisitor {
         if (it.stmt == null) {
             throw new semanticError(it.pos, "For statement suite is missing");
         }
-        currentScope = new Scope(currentScope);
-        currentScope.inloop = true;
+        if (it.stmt instanceof blockStmtNode) {
+            ((blockStmtNode) it.stmt).newScope = false;
+        }
         it.stmt.accept(this);
         currentScope = currentScope.fatherScope;
     }
 
     @Override
     public void visit(forExprStmtNode it) {
+        currentScope = new Scope(currentScope);
+        currentScope.inloop = true;
         if (it.init != null) {
             it.init.accept(this);
         }
@@ -231,8 +236,9 @@ public class SemanticChecker implements ASTVisitor {
         if (it.stmt == null) {
             throw new semanticError(it.pos, "For statement suite is missing");
         }
-        currentScope = new Scope(currentScope);
-        currentScope.inloop = true;
+        if (it.stmt instanceof blockStmtNode) {
+            ((blockStmtNode) it.stmt).newScope = false;
+        }
         it.stmt.accept(this);
         currentScope = currentScope.fatherScope;
     }
@@ -296,7 +302,7 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(funcExprNode it) {
         Type func = null;
         if (currentClass != null) {
-            func = global.getBasic(currentClass.className + "::" + it.name);
+            func = global.getBasic(currentClass.className + "." + it.name);
         }
         if (func == null) {
             func = global.getBasic(it.name);
@@ -332,7 +338,7 @@ public class SemanticChecker implements ASTVisitor {
         if (!(it.expr.type instanceof classType)) {
             throw new semanticError(it.pos, "Class wrong");
         }
-        it.type = global.getBasic(((classType) it.expr.type).className + "::" + it.name);
+        it.type = global.getBasic(((classType) it.expr.type).className + "." + it.name);
         if (it.type == null) {
             throw new semanticError(it.pos, "Member variable is not defined");
         }
@@ -346,11 +352,11 @@ public class SemanticChecker implements ASTVisitor {
         }
         Type func;
         if (it.expr.type instanceof classType) {
-            func = global.getBasic(((classType) it.expr.type).className + "::" + it.func.name);
+            func = global.getBasic(((classType) it.expr.type).className + "." + it.func.name);
         } else if (it.expr.type instanceof arrayType) {
-            func = global.getBasic("_array::" + it.func.name);
+            func = global.getBasic("_array." + it.func.name);
         } else {
-            func = global.getBasic("string::" + it.func.name);
+            func = global.getBasic("string." + it.func.name);
         }
         if (func == null) {
             throw new semanticError(it.pos, "Function is not defined");
@@ -577,4 +583,5 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(typeNode it) {
 
     }
+
 }

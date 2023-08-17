@@ -13,14 +13,12 @@ public class Scope {
     public HashMap<String, varEntity> vars;
     public Scope fatherScope;
     public boolean inloop;
-    public int dep;
 
     public Scope(Scope fatherScope) {
         members = new HashMap<>();
         vars = new HashMap<>();
         this.fatherScope = fatherScope;
         if (fatherScope != null) {
-            this.dep = fatherScope.dep + 1;
             this.inloop = fatherScope.inloop;
         }
     }

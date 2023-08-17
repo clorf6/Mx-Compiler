@@ -10,13 +10,14 @@ public class Program {
     public Program() {
         funcs = new ArrayList<>();
         funcs.add(new Function("_global_init", new voidType(), new ArrayList<>()));
+        funcs.get(0).block.remove(1);
         globalInsts = new Global();
     }
 
     public String toString() {
         StringBuilder ret = new StringBuilder(globalInsts.toString());
         for (Function func : funcs) {
-            ret.append(func.toString());
+            ret.append(func.toString()).append("\n");
         }
         return ret.toString();
     }

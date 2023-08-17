@@ -7,6 +7,7 @@ public abstract class Error extends RuntimeException {
 
     public Error(String msg, Position pos) {
         this.pos = pos;
+        if (pos == null) this.pos = new Position(0, 0);
         this.message = msg;
     }
 

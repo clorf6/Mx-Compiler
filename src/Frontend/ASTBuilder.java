@@ -185,7 +185,7 @@ public class ASTBuilder extends MxParserBaseVisitor<ASTNode> {
         }
         StmtNode stmt = (StmtNode) visit(ctx.stmt());
         if (ctx.var_def() != null) {
-            varDefNode init = (varDefNode) visit(ctx.var_def());
+            varDefStmtNode init = new varDefStmtNode((varDefNode) visit(ctx.var_def()));
             return new forDefStmtNode(new Position(ctx), init, cond, step, stmt);
         } else {
             ExprNode init = null;
@@ -266,7 +266,8 @@ public class ASTBuilder extends MxParserBaseVisitor<ASTNode> {
         } else if (ctx.Number() != null) {
             return new numberNode(new Position(ctx), Long.parseLong(ctx.Number().getText()));
         } else if (ctx.Str() != null) {
-            return new strNode(new Position(ctx), ctx.Str().getText());
+            String str = ctx.Str().getText().substring(1, ctx.Str().getText().length() - 1);
+            return new strNode(new Position(ctx), str);
         } else {
             return new nullNode(new Position(ctx));
         }

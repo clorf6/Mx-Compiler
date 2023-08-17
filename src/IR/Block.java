@@ -3,8 +3,10 @@ package IR;
 import Utils.Error.internalError;
 import IR.Type.*;
 import IR.Instruction.*;
+import Utils.Position;
 
 import java.util.LinkedList;
+import java.util.Objects;
 
 public class Block {
     public labelType name;
@@ -18,9 +20,7 @@ public class Block {
     }
 
     public void add(Instruction ins) {
-        if (terminal != null) {
-            throw new internalError(null, "Block add error");
-        }
+        if (terminal != null) return ;
         inst.add(ins);
         if (ins instanceof br || ins instanceof ret) {
             terminal = ins;

@@ -12,6 +12,17 @@ public class pointerType extends Type {
         return 4;
     }
 
+    public String getText() {
+        int num = 1;
+        while (elemType instanceof pointerType) {
+            num++;
+            elemType = ((pointerType) elemType).elemType;
+        }
+        StringBuilder ret = new StringBuilder(elemType.toString());
+        for (int i = 1; i <= num; ++i) ret.append("*");
+        return ret.toString();
+    }
+
     @Override
     public String toString() {
         return "ptr";

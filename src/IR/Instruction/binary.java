@@ -5,6 +5,7 @@ import AST.binaryExprNode;
 import IR.IRVisitor;
 import IR.Entity.Entity;
 import Utils.Error.internalError;
+import Utils.Position;
 
 public class binary extends Instruction {
     public enum binaryOp {
@@ -15,7 +16,7 @@ public class binary extends Instruction {
     Entity res, op1, op2;
     binaryOp op;
 
-    public binary(Entity res, Entity op1, binaryExprNode.binaryOpType op, Entity op2) {
+    public binary(Entity res, Entity op1, binaryExprNode.binaryOpType op, Entity op2, Position pos) {
         this.res = res;
         this.op1 = op1;
         this.op2 = op2;
@@ -30,7 +31,7 @@ public class binary extends Instruction {
             case Bitand, And -> binaryOp.and;
             case Bitor, Or -> binaryOp.or;
             case Bitxor -> binaryOp.xor;
-            default -> throw new internalError(null, "Wrong binary type");
+            default -> throw new internalError(pos, "Wrong binary type");
         };
     }
 

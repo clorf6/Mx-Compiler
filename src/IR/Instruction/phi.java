@@ -4,6 +4,7 @@ import IR.IRVisitor;
 import IR.Entity.Entity;
 import IR.Type.labelType;
 import Utils.Error.internalError;
+import Utils.Position;
 
 import java.util.ArrayList;
 
@@ -12,15 +13,15 @@ public class phi extends Instruction {
     ArrayList<Entity> val;
     ArrayList<labelType> label;
 
-    public phi(Entity res, ArrayList<Entity> val, ArrayList<labelType> label) {
+    public phi(Entity res, ArrayList<Entity> val, ArrayList<labelType> label, Position pos) {
         this.res = res;
         this.val = val;
         this.label = label;
         if (val.size() != label.size()) {
-            throw new internalError(null, "Phi instruction number wrong");
+            throw new internalError(pos, "Phi instruction number wrong");
         }
         if (val.isEmpty()) {
-            throw new internalError(null, "Phi instruction number wrong");
+            throw new internalError(pos, "Phi instruction number wrong");
         }
     }
 

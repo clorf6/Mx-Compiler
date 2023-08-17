@@ -4,16 +4,17 @@ import IR.IRVisitor;
 import IR.Type.*;
 import IR.Entity.Entity;
 import Utils.Error.internalError;
+import Utils.Position;
 
 public class alloca extends Instruction {
     Type type;
     Entity res;
 
-    public alloca(Entity res, Type type) {
+    public alloca(Entity res, Type type, Position pos) {
         this.type = type;
         this.res = res;
         if (!(res.type instanceof pointerType)) {
-            throw new internalError(null, "Alloca instruction result type wrong");
+            throw new internalError(pos, "Alloca instruction result type wrong");
         }
     }
 

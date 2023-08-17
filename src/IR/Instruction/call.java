@@ -36,8 +36,11 @@ public class call extends Instruction {
             ret = new StringBuilder(res.getText() + " = call " + res.type.toString()
                     + " @" + name + "(");
         }
-        for (Entity arg : args) {
-            ret.append(arg.toString());
+        for (int i = 0; i < args.size(); i++) {
+            ret.append(args.get(i).toString());
+            if (i != args.size() - 1) {
+                ret.append(", ");
+            }
         }
         ret.append(")");
         return ret.toString();

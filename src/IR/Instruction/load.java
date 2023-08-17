@@ -4,18 +4,19 @@ import IR.IRVisitor;
 import IR.Entity.Entity;
 import IR.Type.*;
 import Utils.Error.internalError;
+import Utils.Position;
 
 public class load extends Instruction {
     public Entity res, p;
 
-    public load(Entity res, Entity p) {
+    public load(Entity res, Entity p, Position pos) {
         this.res = res;
         this.p = p;
         if (!(p.type instanceof pointerType)) {
-            throw new internalError(null, "Load instruction pointer type wrong");
+            throw new internalError(pos, "Load instruction pointer type wrong");
         }
         if (!res.type.getClass().equals(((pointerType) p.type).elemType.getClass())) {
-            throw new internalError(null, "Load instruction result type wrong");
+            throw new internalError(pos, "Load instruction result type wrong");
         }
     }
 

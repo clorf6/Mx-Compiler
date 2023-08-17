@@ -34,47 +34,59 @@ public class SymbolCollector implements ASTVisitor {
             add(paramStr);
         }}, null
         )), pos);
+        global.BuiltinFunc.put("print", 0);
         global.putBasic("println", new funcType(new funcDefNode(
                 pos, VoidNode, "println", new ArrayList<>() {{
             add(paramStr);
         }}, null
         )), pos);
+        global.BuiltinFunc.put("println", 0);
         global.putBasic("printInt", new funcType(new funcDefNode(
                 pos, VoidNode, "printInt", new ArrayList<>() {{
             add(paramInt);
         }}, null
         )), pos);
+        global.BuiltinFunc.put("printInt", 0);
         global.putBasic("printlnInt", new funcType(new funcDefNode(
                 pos, VoidNode, "printlnInt", new ArrayList<>() {{
             add(paramInt);
         }}, null
         )), pos);
+        global.BuiltinFunc.put("printlnInt", 0);
         global.putBasic("getString", new funcType(new funcDefNode(
                 pos, StringNode, "getString", new ArrayList<>(), null
         )), pos);
+        global.BuiltinFunc.put("getString", 0);
         global.putBasic("getInt", new funcType(new funcDefNode(
                 pos, IntNode, "getInt", new ArrayList<>(), null
         )), pos);
+        global.BuiltinFunc.put("getInt", 0);
         global.putBasic("toString", new funcType(new funcDefNode(
                 pos, StringNode, "toString", new ArrayList<>() {{
             add(paramInt);
         }}, null
         )), pos);
-        funcDefNode Strlength = new funcDefNode(pos, IntNode, "string::length", new ArrayList<>(), null);
-        funcDefNode Strsubstring = new funcDefNode(pos, StringNode, "string::substring", new ArrayList<>() {{
+        global.BuiltinFunc.put("toString", 0);
+        funcDefNode Strlength = new funcDefNode(pos, IntNode, "string.length", new ArrayList<>(), null);
+        funcDefNode Strsubstring = new funcDefNode(pos, StringNode, "string.substring", new ArrayList<>() {{
             add(new paramNode(pos, IntNode, "left"));
             add(new paramNode(pos, IntNode, "right"));
         }}, null);
-        funcDefNode StrparseInt = new funcDefNode(pos, IntNode, "string::parseInt", new ArrayList<>(), null);
-        funcDefNode Strord = new funcDefNode(pos, IntNode, "string::ord", new ArrayList<>() {{
+        funcDefNode StrparseInt = new funcDefNode(pos, IntNode, "string.parseInt", new ArrayList<>(), null);
+        funcDefNode Strord = new funcDefNode(pos, IntNode, "string.ord", new ArrayList<>() {{
             add(new paramNode(pos, IntNode, "pos"));
         }}, null);
-        global.putBasic("string::length", new funcType(Strlength), pos);
-        global.putBasic("string::substring", new funcType(Strsubstring), pos);
-        global.putBasic("string::parseInt", new funcType(StrparseInt), pos);
-        global.putBasic("string::ord", new funcType(Strord), pos);
-        funcDefNode Arraysize = new funcDefNode(pos, IntNode, "_array::size", new ArrayList<>(), null);
-        global.putBasic("_array::size", new funcType(Arraysize), pos);
+        global.putBasic("string.length", new funcType(Strlength), pos);
+        global.BuiltinFunc.put("string.length", 1);
+        global.putBasic("string.substring", new funcType(Strsubstring), pos);
+        global.BuiltinFunc.put("string.substring", 1);
+        global.putBasic("string.parseInt", new funcType(StrparseInt), pos);
+        global.BuiltinFunc.put("string.parseInt", 1);
+        global.putBasic("string.ord", new funcType(Strord), pos);
+        global.BuiltinFunc.put("string.ord", 1);
+        funcDefNode Arraysize = new funcDefNode(pos, IntNode, "_array.size", new ArrayList<>(), null);
+        global.BuiltinFunc.put("_array.size", 2);
+        global.putBasic("_array.size", new funcType(Arraysize), pos);
     }
 
     @Override
@@ -92,12 +104,12 @@ public class SymbolCollector implements ASTVisitor {
     public void visit(classDefNode it) {
         classType nowClass = new classType(it.name);
         for (funcDefNode func : it.funcDef) {
-            global.putBasic(it.name + "::" + func.name, new funcType(func), func.pos);
+            global.putBasic(it.name + "." + func.name, new funcType(func), func.pos);
         }
         for (varDefNode VarDef : it.varDef) {
             for (varNode Var : VarDef.var) {
                 nowClass.vars.add(VarDef.typename.type);
-                global.putBasic(it.name + "::" + Var.name, VarDef.typename.type, Var.pos);
+                global.putBasic(it.name + "." + Var.name, VarDef.typename.type, Var.pos);
             }
         }
         global.putBasic(it.name, nowClass, it.pos);
@@ -216,10 +228,11 @@ public class SymbolCollector implements ASTVisitor {
     }
 
     @Override
-    public void visit(typeNode it) {
+    public void visit(varDefNode it) {
     }
 
     @Override
-    public void visit(varDefNode it) {
+    public void visit(typeNode it) {
+
     }
 }

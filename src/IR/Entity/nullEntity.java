@@ -12,6 +12,10 @@ public class nullEntity extends constEntity {
         }
     }
 
+    public nullEntity() {
+        super(new pointerType(new voidType()));
+    }
+
     @Override
     public String getText() {
         return "null";
@@ -19,6 +23,6 @@ public class nullEntity extends constEntity {
 
     @Override
     public String toString() {
-        return getText();
+        return type.toString() + " " + getText();
     }
 }

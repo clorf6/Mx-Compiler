@@ -2,6 +2,7 @@ package IR.Entity;
 
 import IR.Type.*;
 import Utils.Error.internalError;
+import Utils.Position;
 
 public class boolEntity extends constEntity {
     public boolean val;
@@ -9,10 +10,10 @@ public class boolEntity extends constEntity {
     public boolEntity(Type type) {
         super(type);
         if (!(type instanceof integerType)) {
-            throw new internalError(null, "Bool type wrong");
+            throw new internalError(new Position(0, 0), "Bool type wrong");
         } else {
             if (((integerType) type).bit != 1) {
-                throw new internalError(null, "Bool type wrong");
+                throw new internalError(new Position(0, 0), "Bool type wrong");
             } else {
                 val = false;
             }
@@ -27,6 +28,10 @@ public class boolEntity extends constEntity {
     public boolEntity(boolean val) {
         super(new integerType(1));
         this.val = val;
+    }
+
+    public boolEntity Not() {
+        return new boolEntity(!val);
     }
 
     @Override

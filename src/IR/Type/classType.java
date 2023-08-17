@@ -1,11 +1,13 @@
 package IR.Type;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class classType extends Type {
     public String name;
     int size;
     public ArrayList<Type> typelist;
+    public HashMap<String, Integer> pos;
 
     public classType(String name, ArrayList<Type> typelist) {
         this.name = name;
@@ -13,6 +15,7 @@ public class classType extends Type {
         for (Type type : typelist) {
             size += type.size();
         }
+        pos = new HashMap<>();
     }
 
     public void flush() {
@@ -29,6 +32,6 @@ public class classType extends Type {
 
     @Override
     public String toString() {
-        return "%" + name;
+        return "%class." + name;
     }
 }
