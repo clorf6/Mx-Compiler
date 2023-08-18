@@ -28,7 +28,7 @@ public class Block {
     }
 
     public String toString() {
-        StringBuilder ret = new StringBuilder(name.getText() + ":\n");
+        StringBuilder ret = new StringBuilder(name.name + ":\n");
         for (Instruction ins : inst) {
             ret.append("\t").append(ins.toString()).append("\n");
         }

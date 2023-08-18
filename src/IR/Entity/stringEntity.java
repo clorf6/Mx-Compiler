@@ -37,6 +37,11 @@ public class stringEntity extends constEntity {
         this.val = val;
     }
 
+    public stringEntity(String val, int length) {
+        this(new arrayType(new integerType(8), length));
+        this.val = val;
+    }
+
     @Override
     public String getText() {
         return "c\"" + val + "\\00\"";
