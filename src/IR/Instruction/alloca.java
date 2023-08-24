@@ -7,8 +7,8 @@ import Utils.Error.internalError;
 import Utils.Position;
 
 public class alloca extends Instruction {
-    Type type;
-    Entity res;
+    public Type type;
+    public Entity res;
 
     public alloca(Entity res, Type type, Position pos) {
         this.type = type;

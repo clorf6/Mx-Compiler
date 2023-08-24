@@ -12,9 +12,9 @@ public class icmp extends Instruction {
         eq, ne, sgt, sge, slt, sle
     }
 
-    Entity res;
-    Entity op1, op2;
-    compOp op;
+    public Entity res;
+    public Entity op1, op2;
+    public compOp op;
 
     public icmp(Entity res, binaryExprNode.binaryOpType op,
                 Entity op1, Entity op2, Position pos) {

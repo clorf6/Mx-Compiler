@@ -6,9 +6,9 @@ import java.util.ArrayList;
 
 public class call extends Instruction {
 
-    Entity res;
-    String name;
-    ArrayList<Entity> args;
+    public Entity res;
+    public String name;
+    public ArrayList<Entity> args;
 
     public call(Entity res, String name, ArrayList<Entity> args) {
         this.res = res;

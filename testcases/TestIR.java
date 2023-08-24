@@ -1,16 +1,16 @@
-package test;
+package testcases;
 
+import AST.rootNode;
+import Utils.Scope.globalScope;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import src.AST.ASTBuilder;
-import src.IR.IRBuilder;
-import src.IR.IRPrinter;
-import src.Util.error.Errors;
-import src.Util.error.ParserErrorListener;
-import src.parser.MxLexer;
-import src.parser.MxParser;
-import src.semantic.Semantic;
+import Frontend.*;
+import Utils.Error.*;
+import Parser.MxLexer;
+import Parser.MxParser;
+import Utils.*;
+import IR.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -23,7 +23,7 @@ public class TestIR {
     public static final String RED = "\u001B[31m";
     public static final String GREEN = "\u001B[32m";
     public static final String YELLOW = "\u001B[33m";
-    public static String folderPath = "test/testcases/codegen/";
+    public static String folderPath = "testcases/codegen/";
 
     public static void testIR() throws Exception {
         System.out.println(YELLOW + "=== Begin testing IR ===");
@@ -42,6 +42,7 @@ public class TestIR {
                     System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
                     System.out.println(RED + "Fail!");
                 }
+            //    break;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -102,19 +103,22 @@ public class TestIR {
             PrintStream printStream = new PrintStream(fileOutputStream);
             System.setOut(printStream);
             InputStream inputStream = new FileInputStream(folderPath + fileName);
+            rootNode ASTRoot;
+            globalScope gScope = new globalScope(null);
             MxLexer lexer = new MxLexer(CharStreams.fromStream(inputStream));
             lexer.removeErrorListeners();
-            lexer.addErrorListener(new ParserErrorListener());
+            lexer.addErrorListener(new MxErrorListener());
             MxParser parser = new MxParser(new CommonTokenStream(lexer));
             parser.removeErrorListeners();
-            parser.addErrorListener(new ParserErrorListener());
-            ParseTree ctx = parser.program();
-            ASTBuilder AST = new ASTBuilder(ctx);
-            Semantic semantic = new Semantic(AST.ASTProgram);
-            semantic.check();
-            IRBuilder irBuilder = new IRBuilder(AST.ASTProgram, semantic.globalScope);
-            IRPrinter irPrinter = new IRPrinter(irBuilder.irProgram);
-            irPrinter.print();
+            parser.addErrorListener(new MxErrorListener());
+            ParseTree parseTreeRoot = parser.program();
+            ASTBuilder astBuilder = new ASTBuilder();
+            ASTRoot = (rootNode)astBuilder.visit(parseTreeRoot);
+            new SymbolCollector(gScope).visit(ASTRoot);
+            new SemanticChecker(gScope).visit(ASTRoot);
+            Program program = new Program();
+            new IRBuilder(program, gScope).visit(ASTRoot);
+            System.out.print(program.toString());
             printStream.close();
             String input = extractContentFromFile(folderPath + fileName, "=== input ===");
             String output = extractContentFromFile(folderPath + fileName, "=== output ===");
@@ -126,7 +130,7 @@ public class TestIR {
             }
             ProcessBuilder processBuilder = new ProcessBuilder(
                     "wsl",
-                    "clang-15", "src/Builtin/Builtin.ll", "IRgen/tmp.ll", "-o", "IRgen/code", "-m32"
+                    "clang-15", "./Builtin/Builtin.ll", "IRgen/tmp.ll", "-o", "IRgen/code", "-m32"
             );
             Process process = processBuilder.start();
             int processExitCode = process.waitFor();
@@ -153,8 +157,8 @@ public class TestIR {
             } else {
                 return true;
             }
-        } catch (Errors errors) {
-            System.err.println(errors.toString());
+        } catch (Utils.Error.Error er) {
+            System.err.println(er);
             return false;
         }
     }

@@ -14,19 +14,21 @@ public class Function {
     public Type retType;
     public ArrayList<localVarEntity> param;
     public LinkedList<Block> block;
-
+    public int size;
     public Function(String name, Type retType, ArrayList<localVarEntity> param) {
         this.name = name;
         this.retType = retType;
         this.param = param;
         this.block = new LinkedList<>();
+        this.size = 0;
         block.add(new Block("entry"));
         block.add(new Block("begin"));
+        block.add(new Block("return"));
     }
 
-    public void add(Block bl, HashMap<labelType, Boolean> appear) {
-        if (appear.get(bl.name) != null) {
-            block.add(bl);
+    public void add(Block bl) {
+        if (!bl.pre.isEmpty()) {
+            block.add(block.size() - 1, bl);
         }
     }
 

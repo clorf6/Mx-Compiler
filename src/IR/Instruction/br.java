@@ -3,6 +3,7 @@ package IR.Instruction;
 import IR.IRVisitor;
 import IR.Entity.Entity;
 import IR.Type.*;
+import IR.Block;
 import Utils.Error.internalError;
 import Utils.Position;
 
@@ -13,10 +14,10 @@ public class br extends Instruction {
     public Entity cond;
     public labelType iftrue, iffalse;
 
-    public br(Entity cond, labelType iftrue, labelType iffalse, HashMap<labelType, Boolean> appear, Position pos) {
+    public br(Entity cond, Block iftrue, Block iffalse, Block pre, Position pos) {
         this.cond = cond;
-        this.iftrue = iftrue;
-        this.iffalse = iffalse;
+        this.iftrue = iftrue.name;
+        this.iffalse = iffalse.name;
         if (!(cond.type instanceof integerType)) {
             throw new internalError(pos, "Br instruction cond type wrong");
         } else {
@@ -24,15 +25,15 @@ public class br extends Instruction {
                 throw new internalError(pos, "Br instruction cond type wrong");
             }
         }
-        appear.put(iftrue, true);
-        appear.put(iffalse, true);
+        iftrue.pre.add(pre);
+        iffalse.pre.add(pre);
     }
 
-    public br(labelType dest, HashMap<labelType, Boolean> appear) {
-        this.iftrue = dest;
+    public br(Block dest, Block pre) {
+        this.iftrue = dest.name;
+        dest.pre.add(pre);
         this.cond = null;
         this.iffalse = null;
-        appear.put(iftrue, true);
     }
 
     @Override

@@ -5,8 +5,8 @@ import IR.IRVisitor;
 
 public class constant extends Instruction {
 
-    globalVarEntity var;
-    constEntity init;
+    public globalVarEntity var;
+    public constEntity init;
 
     public constant(globalVarEntity var, constEntity init) {
         this.var = var;

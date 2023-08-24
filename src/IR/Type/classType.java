@@ -8,6 +8,7 @@ public class classType extends Type {
     int size;
     public ArrayList<Type> typelist;
     public HashMap<String, Integer> pos;
+    public HashMap<Integer, Integer> offset;
 
     public classType(String name, ArrayList<Type> typelist) {
         this.name = name;
@@ -16,6 +17,7 @@ public class classType extends Type {
             size += type.size();
         }
         pos = new HashMap<>();
+        offset = new HashMap<>();
     }
 
     public void flush() {

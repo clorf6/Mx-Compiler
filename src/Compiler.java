@@ -4,6 +4,7 @@ import Frontend.IRBuilder;
 import Frontend.SemanticChecker;
 import Frontend.SymbolCollector;
 import IR.Program;
+import Backend.ASMBuilder;
 import Parser.MxLexer;
 import Parser.MxParser;
 import Utils.MxErrorListener;
@@ -18,14 +19,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Compiler {
-    public static void main(String[] args) throws Exception{
-        //        String inputName = "test.txt";
-//        InputStream input = new FileInputStream(inputName);
+    public static void main(String[] args) throws Exception {
+        //String inputName = "test.txt";
+        //InputStream input = new FileInputStream(inputName);
         String outputName = "output.ll";
         OutputStream output = new FileOutputStream(outputName);
-
+        String ASMoutputName = "test.s";
+        OutputStream ASMoutput = new FileOutputStream(ASMoutputName);
         InputStream input = System.in;
-
         try {
             rootNode ASTRoot;
             globalScope gScope = new globalScope(null);
@@ -37,22 +38,20 @@ public class Compiler {
             parser.addErrorListener(new MxErrorListener());
             ParseTree parseTreeRoot = parser.program();
             ASTBuilder astBuilder = new ASTBuilder();
-            ASTRoot = (rootNode)astBuilder.visit(parseTreeRoot);
+            ASTRoot = (rootNode) astBuilder.visit(parseTreeRoot);
             new SymbolCollector(gScope).visit(ASTRoot);
             new SemanticChecker(gScope).visit(ASTRoot);
             Program program = new Program();
             new IRBuilder(program, gScope).visit(ASTRoot);
-            output.write(program.toString().getBytes());
-////            // new IRPrinter(System.out).visitFn(f);
-////
-////            AsmFn asmF = new AsmFn();
-////            new InstSelector(asmF).visitFn(f);
-////            new RegAlloc(asmF).work();
-////            new AsmPrinter(asmF, System.out).print();
+            //output.write(program.toString().getBytes());
+            ASM.Program program1 = new ASM.Program();
+            new ASMBuilder(program1, gScope).visit(program);
+            //ASMoutput.write(program1.toString().getBytes());
+            System.out.println(program1);
         } catch (Utils.Error.Error er) {
             System.err.println(er);
             throw new RuntimeException();
         }
-        //TestIR.testIR();
+//        TestIR.testIR();
     }
 }

@@ -5,7 +5,7 @@ import IR.Instruction.Instruction;
 import java.util.ArrayList;
 
 public class Global {
-    ArrayList<Instruction> insts;
+    public ArrayList<Instruction> insts;
 
     public Global() {
         insts = new ArrayList<>();

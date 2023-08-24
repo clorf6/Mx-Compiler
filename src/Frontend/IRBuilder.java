@@ -30,8 +30,6 @@ public class IRBuilder implements ASTVisitor {
     Block currentBlock, globalInit;
     Block BeginBlock, EndBlock;
     Function currentFunction;
-
-    HashMap<labelType, Boolean> appear;
     int count;
 
     integerType i32Type = new integerType(32);
@@ -44,7 +42,6 @@ public class IRBuilder implements ASTVisitor {
         this.currentScope = this.global = global;
         this.program = program;
         this.getVal = true;
-        this.appear = new HashMap<>();
         this.count = 0;
     }
 
@@ -66,11 +63,7 @@ public class IRBuilder implements ASTVisitor {
         } else if (type instanceof stringType) {
             return StrType;
         } else if (type instanceof classType) {
-            ArrayList<Type> varType = new ArrayList<>();
-            for (AST.Type.Type ty : ((classType) type).vars) {
-                varType.add(convertType(ty, pos));
-            }
-            return new pointerType(new IR.Type.classType(((classType) type).className, varType));
+            return new pointerType(new IR.Type.classType(((classType) type).className, new ArrayList<>()));
         } else if (type instanceof arrayType) {
             Type ret = convertType(((arrayType) type).elemType, pos);
             for (int i = 1; i <= ((arrayType) type).dim; i++) {
@@ -99,7 +92,7 @@ public class IRBuilder implements ASTVisitor {
                 }
             } else if (type instanceof classType) {
                 if (name.contains(".")) continue;
-                IR.Type.classType nowClass = (IR.Type.classType) ((pointerType) convertType(type, pos)).elemType;
+                IR.Type.classType nowClass = new IR.Type.classType(((classType) type).className, new ArrayList<>());
                 program.globalInsts.add(new classdef(nowClass));
                 global.putClass(nowClass.name, nowClass, pos);
             }
@@ -125,8 +118,9 @@ public class IRBuilder implements ASTVisitor {
         globalInit = program.funcs.get(0).block.get(0);
         init(it.pos);
         it.Def.forEach(def -> def.accept(this));
+        program.funcs.get(0).block.remove(program.funcs.get(0).block.size() - 1);
         globalInit.add(new ret(new localVarEntity(new IR.Type.voidType(), null)));
-        if (!Objects.equals(globalInit.name.name, "entry")) program.funcs.get(0).add(globalInit, appear);
+        if (!Objects.equals(globalInit.name.name, "entry")) program.funcs.get(0).add(globalInit);
     }
 
     @Override
@@ -142,16 +136,25 @@ public class IRBuilder implements ASTVisitor {
     public void visit(classDefNode it) {
         currentScope = new Scope(currentScope);
         currentClass = global.getClass(it.name);
-        int pos = 0;
+        int pos = 0, offset = 0;
         for (varDefNode vars : it.varDef) {
             Type type = convertType(vars.typename.type, it.pos);
             for (varNode var : vars.var) {
+                currentClass.typelist.add(type);
+                currentClass.offset.put(pos, offset++);
                 currentClass.pos.put(var.name, pos++);
+                if (type instanceof integerType) {
+                    if (((integerType) type).bit != 32) {
+                        currentClass.typelist.add(new IR.Type.arrayType(type, 32 / ((integerType) type).bit - 1));
+                        pos++;
+                    }
+                }
                 localVarEntity now = new localVarEntity(new pointerType(type), it.name);
                 now.member = true;
                 currentScope.putVar(var.name, now, it.pos);
             }
         }
+        currentClass.flush();
         boolean constructor = false;
         for (funcDefNode func : it.funcDef) {
             if (Objects.equals(func.name, it.name)) constructor = true;
@@ -163,6 +166,7 @@ public class IRBuilder implements ASTVisitor {
                 add(This);
             }});
             construct.block.get(0).add(new ret(new localVarEntity(VoidType, "void")));
+            construct.block.remove(2);
             construct.block.remove(1);
             program.funcs.add(construct);
         }
@@ -202,6 +206,13 @@ public class IRBuilder implements ASTVisitor {
         if (Objects.equals(currentFunction.name, "main")) {
             currentBlock.add(new call("_global_init", new ArrayList<>()));
         }
+        localVarEntity retval = new localVarEntity(new pointerType(currentFunction.retType), "ret.val");
+        if (!(currentFunction.retType instanceof IR.Type.voidType)) {
+            currentBlock.add(new alloca(retval, currentFunction.retType, it.pos));
+            if (Objects.equals(currentFunction.name, "main")) {
+                currentBlock.add(new store(new intEntity(0), retval, it.pos));
+            }
+        }
         for (localVarEntity par : currentFunction.param) {
             localVarEntity addr = new localVarEntity(new pointerType(par.type), par.name + ".addr");
             currentBlock.add(new alloca(addr, par.type, it.pos));
@@ -210,17 +221,17 @@ public class IRBuilder implements ASTVisitor {
         }
         currentBlock = currentFunction.block.get(1);
         it.suite.accept(this);
-        if (Objects.equals(currentFunction.name, "main")) {
-            if (currentBlock.terminal == null) {
-                currentBlock.add(new ret(new intEntity(0)));
-                currentFunction.add(currentBlock, appear);
-            }
+        Block retBlock = currentFunction.block.get(currentFunction.block.size() - 1);
+        if (currentBlock.terminal == null) {
+            currentBlock.add(new br(retBlock, currentBlock));
+            currentFunction.add(currentBlock);
         }
+        currentBlock = retBlock;
         if (currentFunction.retType instanceof IR.Type.voidType) {
-            if (currentBlock.terminal == null) {
-                currentBlock.add(new ret(new localVarEntity(VoidType, "void")));
-                currentFunction.add(currentBlock, appear);
-            }
+            currentBlock.add(new ret(new localVarEntity(VoidType, "void")));
+        } else {
+            Entity ret = getValue(retval, it.pos);
+            currentBlock.add(new ret(ret));
         }
         currentFunction.block.get(0).inst.addAll(currentFunction.block.get(1).inst);
         currentFunction.block.remove(1);
@@ -233,6 +244,7 @@ public class IRBuilder implements ASTVisitor {
     public void visit(varNode it) {
         Type type = convertType(currentType, it.pos);
         varEntity addr;
+        if (it.init != null) it.init.accept(this);
         if (currentScope instanceof globalScope) {
             addr = new globalVarEntity(new pointerType(type), it.name);
             currentScope.putVar(it.name, addr, it.pos);
@@ -254,7 +266,6 @@ public class IRBuilder implements ASTVisitor {
             currentFunction.block.get(0).add(new alloca(addr, type, it.pos));
         }
         if (it.init != null) {
-            it.init.accept(this);
             Entity val = it.init.entity;
             if (it.init.entity instanceof stringEntity) {
                 val = storeStr((stringEntity) it.init.entity);
@@ -308,8 +319,8 @@ public class IRBuilder implements ASTVisitor {
         currentBlock = now;
         if (stmt != null) stmt.accept(this);
         if (currentBlock.terminal == null) {
-            currentBlock.add(new br(end.name, appear));
-            currentFunction.add(currentBlock, appear);
+            currentBlock.add(new br(end, currentBlock));
+            currentFunction.add(currentBlock);
         }
         if (newScope) currentScope = currentScope.fatherScope;
     }
@@ -319,8 +330,8 @@ public class IRBuilder implements ASTVisitor {
         currentBlock = now;
         if (expr != null) expr.accept(this);
         if (currentBlock.terminal == null) {
-            currentBlock.add(new br(end.name, appear));
-            currentFunction.add(currentBlock, appear);
+            currentBlock.add(new br(end, currentBlock));
+            currentFunction.add(currentBlock);
         } else expr = null;
         if (newScope) currentScope = currentScope.fatherScope;
         if (expr != null) return expr.entity;
@@ -343,16 +354,16 @@ public class IRBuilder implements ASTVisitor {
             }
             if (flag > 0 && flag < 3) {
                 Block thenBlock = new Block("if.then" + ++count);
-                if (flag == 1) currentBlock.add(new br(thenBlock.name, appear));
-                else currentBlock.add(new br(it.cond.get(i).entity, thenBlock.name, endBlock.name, appear, it.pos));
-                currentFunction.add(currentBlock, appear);
+                if (flag == 1) currentBlock.add(new br(thenBlock, currentBlock));
+                else currentBlock.add(new br(it.cond.get(i).entity, thenBlock, endBlock, currentBlock, it.pos));
+                currentFunction.add(currentBlock);
                 enterStmt(thenBlock, endBlock, it.Stmt.get(i), true);
                 currentBlock = endBlock;
             } else if (flag == 3) {
                 Block thenBlock = new Block("if.then" + ++count);
                 Block elseBlock = new Block("if.else" + ++count);
-                currentBlock.add(new br(it.cond.get(i).entity, thenBlock.name, elseBlock.name, appear, it.pos));
-                currentFunction.add(currentBlock, appear);
+                currentBlock.add(new br(it.cond.get(i).entity, thenBlock, elseBlock, currentBlock, it.pos));
+                currentFunction.add(currentBlock);
                 enterStmt(thenBlock, endBlock, it.Stmt.get(i), true);
                 if (i + 1 == it.cond.size()) {
                     enterStmt(elseBlock, endBlock, it.Stmt.get(i + 1), true);
@@ -377,18 +388,18 @@ public class IRBuilder implements ASTVisitor {
         Block endBlock = new Block("while.end" + ++count);
         BeginBlock = condBlock;
         EndBlock = endBlock;
-        currentBlock.add(new br(condBlock.name, appear));
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(condBlock, currentBlock));
+        currentFunction.add(currentBlock);
         currentBlock = condBlock;
         it.cond.accept(this);
         if (it.cond.entity instanceof boolEntity) {
             boolean val = ((boolEntity) it.cond.entity).val;
-            if (val) currentBlock.add(new br(bodyBlock.name, appear));
-            else currentBlock.add(new br(endBlock.name, appear));
-            currentFunction.add(currentBlock, appear);
+            if (val) currentBlock.add(new br(bodyBlock, currentBlock));
+            else currentBlock.add(new br(endBlock, currentBlock));
+            currentFunction.add(currentBlock);
         } else {
-            currentBlock.add(new br(it.cond.entity, bodyBlock.name, endBlock.name, appear, it.pos));
-            currentFunction.add(currentBlock, appear);
+            currentBlock.add(new br(it.cond.entity, bodyBlock, endBlock, currentBlock, it.pos));
+            currentFunction.add(currentBlock);
         }
         enterStmt(bodyBlock, condBlock, it.stmt, true);
         currentBlock = endBlock;
@@ -408,23 +419,23 @@ public class IRBuilder implements ASTVisitor {
         Block endBlock = new Block("for.end" + ++count);
         BeginBlock = stepBlock;
         EndBlock = endBlock;
-        currentBlock.add(new br(condBlock.name, appear));
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(condBlock, currentBlock));
+        currentFunction.add(currentBlock);
         currentBlock = condBlock;
         if (it.cond != null) {
             it.cond.accept(this);
             if (it.cond.entity instanceof boolEntity) {
                 boolean val = ((boolEntity) it.cond.entity).val;
-                if (val) currentBlock.add(new br(bodyBlock.name, appear));
-                else currentBlock.add(new br(endBlock.name, appear));
-                currentFunction.add(currentBlock, appear);
+                if (val) currentBlock.add(new br(bodyBlock, currentBlock));
+                else currentBlock.add(new br(endBlock, currentBlock));
+                currentFunction.add(currentBlock);
             } else {
-                currentBlock.add(new br(it.cond.entity, bodyBlock.name, endBlock.name, appear, it.pos));
-                currentFunction.add(currentBlock, appear);
+                currentBlock.add(new br(it.cond.entity, bodyBlock, endBlock, currentBlock, it.pos));
+                currentFunction.add(currentBlock);
             }
         } else {
-            currentBlock.add(new br(bodyBlock.name, appear));
-            currentFunction.add(currentBlock, appear);
+            currentBlock.add(new br(bodyBlock, currentBlock));
+            currentFunction.add(currentBlock);
         }
         if (it.stmt instanceof blockStmtNode) {
             ((blockStmtNode) it.stmt).newScope = false;
@@ -448,23 +459,23 @@ public class IRBuilder implements ASTVisitor {
         Block endBlock = new Block("for.end" + ++count);
         BeginBlock = stepBlock;
         EndBlock = endBlock;
-        currentBlock.add(new br(condBlock.name, appear));
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(condBlock, currentBlock));
+        currentFunction.add(currentBlock);
         currentBlock = condBlock;
         if (it.cond != null) {
             it.cond.accept(this);
             if (it.cond.entity instanceof boolEntity) {
                 boolean val = ((boolEntity) it.cond.entity).val;
-                if (val) currentBlock.add(new br(bodyBlock.name, appear));
-                else currentBlock.add(new br(endBlock.name, appear));
-                currentFunction.add(currentBlock, appear);
+                if (val) currentBlock.add(new br(bodyBlock, currentBlock));
+                else currentBlock.add(new br(endBlock, currentBlock));
+                currentFunction.add(currentBlock);
             } else {
-                currentBlock.add(new br(it.cond.entity, bodyBlock.name, endBlock.name, appear, it.pos));
-                currentFunction.add(currentBlock, appear);
+                currentBlock.add(new br(it.cond.entity, bodyBlock, endBlock, currentBlock, it.pos));
+                currentFunction.add(currentBlock);
             }
         } else {
-            currentBlock.add(new br(bodyBlock.name, appear));
-            currentFunction.add(currentBlock, appear);
+            currentBlock.add(new br(bodyBlock, currentBlock));
+            currentFunction.add(currentBlock);
         }
         if (it.stmt instanceof blockStmtNode) {
             ((blockStmtNode) it.stmt).newScope = false;
@@ -486,26 +497,24 @@ public class IRBuilder implements ASTVisitor {
             if (it.ret.entity instanceof stringEntity) {
                 it.ret.entity = storeStr((stringEntity) it.ret.entity);
             }
-            currentBlock.add(new ret(it.ret.entity));
-        } else {
-            if (Objects.equals(currentFunction.name, "main")) currentBlock.add(new ret(new intEntity(0)));
-            else currentBlock.add(new ret(new localVarEntity(VoidType, "void")));
+            currentBlock.add(new store(it.ret.entity, new localVarEntity(new pointerType(currentFunction.retType), "ret.val"), it.pos));
         }
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(currentFunction.block.get(currentFunction.block.size() - 1), currentBlock));
+        currentFunction.add(currentBlock);
     }
 
     @Override
     public void visit(breakStmtNode it) {
         if (currentBlock.terminal != null) return ;
-        currentBlock.add(new br(EndBlock.name, appear));
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(EndBlock, currentBlock));
+        currentFunction.add(currentBlock);
     }
 
     @Override
     public void visit(continueStmtNode it) {
         if (currentBlock.terminal != null) return ;
-        currentBlock.add(new br(BeginBlock.name, appear));
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(BeginBlock, currentBlock));
+        currentFunction.add(currentBlock);
     }
 
     public Entity getValue(Entity now, Position pos) {
@@ -708,15 +717,15 @@ public class IRBuilder implements ASTVisitor {
                 localVarEntity stepAddr = new localVarEntity(new pointerType(i32Type), "_step");
                 currentBlock.add(new alloca(stepAddr, i32Type, it.pos));
                 currentBlock.add(new store(new intEntity(0), stepAddr, it.pos));
-                currentBlock.add(new br(condBlock.name, appear));
-                currentFunction.add(currentBlock, appear);
+                currentBlock.add(new br(condBlock, currentBlock));
+                currentFunction.add(currentBlock);
                 currentBlock = condBlock;
                 localVarEntity step = new localVarEntity(i32Type, "step");
                 currentBlock.add(new load(step, stepAddr, it.pos));
                 localVarEntity cond = getTempVar(i1Type, "cond");
                 currentBlock.add(new icmp(cond, binaryExprNode.binaryOpType.Le, step, preLength, it.pos));
-                currentBlock.add(new br(cond, bodyBlock.name, endBlock.name, appear, it.pos));
-                currentFunction.add(currentBlock, appear);
+                currentBlock.add(new br(cond, bodyBlock, endBlock, currentBlock, it.pos));
+                currentFunction.add(currentBlock);
                 currentBlock = bodyBlock;
                 length = it.expr.get(i).entity;
                 lengthAddr = getTempVar(StrType, "var");
@@ -726,14 +735,14 @@ public class IRBuilder implements ASTVisitor {
                 localVarEntity arrayAddr = getTempVar(preArray.type, "addr");
                 currentBlock.add(new getelementptr(arrayAddr, preArray, new ArrayList<>() {{add(step);}}, it.pos));
                 currentBlock.add(new store(array, arrayAddr, it.pos));
-                currentBlock.add(new br(stepBlock.name, appear));
-                currentFunction.add(currentBlock, appear);
+                currentBlock.add(new br(stepBlock, currentBlock));
+                currentFunction.add(currentBlock);
                 currentBlock = stepBlock;
                 localVarEntity next = getTempVar(i32Type, "step");
                 currentBlock.add(new binary(next, step, binaryExprNode.binaryOpType.Add, new intEntity(1), it.pos));
                 currentBlock.add(new store(next, stepAddr, it.pos));
-                currentBlock.add(new br(condBlock.name, appear));
-                currentFunction.add(currentBlock, appear);
+                currentBlock.add(new br(condBlock, currentBlock));
+                currentFunction.add(currentBlock);
                 currentBlock = endBlock;
             }
         }
@@ -809,19 +818,19 @@ public class IRBuilder implements ASTVisitor {
         Block trueBlock = new Block("logic.true" + ++count);
         Block falseBlock = new Block("logic.false" + ++count);
         Block endBlock = new Block("logic.end" + ++count);
-        if (!flag) currentBlock.add(new br(it.lhs.entity, thenBlock.name, falseBlock.name, appear, it.pos));
-        else currentBlock.add(new br(it.lhs.entity, trueBlock.name, thenBlock.name, appear, it.pos));
-        currentFunction.add(currentBlock, appear);
+        if (!flag) currentBlock.add(new br(it.lhs.entity, thenBlock, falseBlock, currentBlock, it.pos));
+        else currentBlock.add(new br(it.lhs.entity, trueBlock, thenBlock, currentBlock, it.pos));
+        currentFunction.add(currentBlock);
         currentBlock = thenBlock;
         it.rhs.accept(this);
-        currentBlock.add(new br(it.rhs.entity, trueBlock.name, falseBlock.name, appear, it.pos));
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(it.rhs.entity, trueBlock, falseBlock, currentBlock, it.pos));
+        currentFunction.add(currentBlock);
         currentBlock = trueBlock;
-        currentBlock.add(new br(endBlock.name, appear));
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(endBlock, currentBlock));
+        currentFunction.add(currentBlock);
         currentBlock = falseBlock;
-        currentBlock.add(new br(endBlock.name, appear));
-        currentFunction.add(currentBlock, appear);
+        currentBlock.add(new br(endBlock, currentBlock));
+        currentFunction.add(currentBlock);
         localVarEntity tmp = getTempVar(i1Type, "var");
         currentBlock = endBlock;
         currentBlock.add(new phi(tmp, new ArrayList<>() {{
@@ -938,6 +947,15 @@ public class IRBuilder implements ASTVisitor {
                         currentBlock.add(new call(tmp, "string." + it.opCode.name().toLowerCase(), args));
                         it.entity = tmp;
                     } else {
+                        if (it.lhs.entity instanceof intEntity) {
+                            Entity temp = it.lhs.entity;
+                            it.lhs.entity = it.rhs.entity;
+                            it.rhs.entity = temp;
+                            if (it.opCode == binaryExprNode.binaryOpType.Le) it.opCode = binaryExprNode.binaryOpType.Ge;
+                            else if (it.opCode == binaryExprNode.binaryOpType.Leq) it.opCode = binaryExprNode.binaryOpType.Geq;
+                            else if (it.opCode == binaryExprNode.binaryOpType.Ge) it.opCode = binaryExprNode.binaryOpType.Le;
+                            else if (it.opCode == binaryExprNode.binaryOpType.Geq) it.opCode = binaryExprNode.binaryOpType.Leq;
+                        }
                         Entity tmp = getTempVar(i1Type, "binaryComp");
                         currentBlock.add(new icmp(tmp, it.opCode, it.lhs.entity, it.rhs.entity, it.pos));
                         it.entity = tmp;
@@ -994,8 +1012,8 @@ public class IRBuilder implements ASTVisitor {
             Block trueBlock = new Block("cond.true" + ++count);
             Block falseBlock = new Block("cond.false" + ++count);
             Block endBlock = new Block("cond.end" + ++count);
-            currentBlock.add(new br(it.cond.entity, trueBlock.name, falseBlock.name, appear, it.pos));
-            currentFunction.add(currentBlock, appear);
+            currentBlock.add(new br(it.cond.entity, trueBlock, falseBlock, currentBlock, it.pos));
+            currentFunction.add(currentBlock);
             Entity trueEntity = enterExpr(trueBlock, endBlock, it.thenExpr, true);
             if (trueEntity instanceof stringEntity) {
                 trueEntity = storeStr((stringEntity) trueEntity);

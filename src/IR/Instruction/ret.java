@@ -5,7 +5,7 @@ import IR.Type.voidType;
 import IR.IRVisitor;
 
 public class ret extends Instruction {
-    Entity val;
+    public Entity val;
 
     public ret(Entity val) {
         this.val = val;

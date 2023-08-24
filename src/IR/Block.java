@@ -5,6 +5,8 @@ import IR.Type.*;
 import IR.Instruction.*;
 import Utils.Position;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Objects;
 
@@ -13,8 +15,11 @@ public class Block {
     public LinkedList<Instruction> inst;
     public Instruction terminal;
 
+    public ArrayList<Block> pre;
+
     public Block(String name) {
         this.name = new labelType(name);
+        this.pre = new ArrayList<>();
         inst = new LinkedList<>();
         terminal = null;
     }

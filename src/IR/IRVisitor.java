@@ -40,6 +40,4 @@ public interface IRVisitor {
     void visit(Global it);
 
     void visit(Program it);
-
-    void visit(Class it);
 }

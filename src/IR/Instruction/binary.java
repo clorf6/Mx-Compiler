@@ -9,12 +9,12 @@ import Utils.Position;
 
 public class binary extends Instruction {
     public enum binaryOp {
-        add, sub, mul, udiv, sdiv,
-        srem, shl, ashr, and, or, xor
+        add, sub, mul, sdiv, srem,
+        shl, ashr, and, or, xor
     }
 
-    Entity res, op1, op2;
-    binaryOp op;
+    public Entity res, op1, op2;
+    public binaryOp op;
 
     public binary(Entity res, Entity op1, binaryExprNode.binaryOpType op, Entity op2, Position pos) {
         this.res = res;

@@ -9,9 +9,9 @@ import Utils.Position;
 import java.util.ArrayList;
 
 public class phi extends Instruction {
-    Entity res;
-    ArrayList<Entity> val;
-    ArrayList<labelType> label;
+    public Entity res;
+    public ArrayList<Entity> val;
+    public ArrayList<labelType> label;
 
     public phi(Entity res, ArrayList<Entity> val, ArrayList<labelType> label, Position pos) {
         this.res = res;
