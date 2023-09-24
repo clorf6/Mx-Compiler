@@ -4,6 +4,7 @@
 # Example:
 #    scripts/test.bash 'bin/mxc -emit-llvm' ./testcases/codegen bin/builtin.ll
 
+
 if [ $# -ne 3 ]; then
     cat << EOF >&2 
 Usage: $0 <complier> <codegen_dir> <builtin>

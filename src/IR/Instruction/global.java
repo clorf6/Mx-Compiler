@@ -6,9 +6,9 @@ import IR.IRVisitor;
 public class global extends Instruction {
 
     public globalVarEntity var;
-    public constEntity init;
+    public Entity init;
 
-    public global(globalVarEntity var, constEntity init) {
+    public global(globalVarEntity var, Entity init) {
         this.var = var;
         this.init = init;
     }

@@ -14,20 +14,23 @@ public class Function {
     public Type retType;
     public ArrayList<localVarEntity> param;
     public LinkedList<Block> block;
-    public int size;
+    public localVarEntity retval;
+    public int size, callSize;
     public Function(String name, Type retType, ArrayList<localVarEntity> param) {
         this.name = name;
         this.retType = retType;
         this.param = param;
         this.block = new LinkedList<>();
         this.size = 0;
+        this.callSize = 0;
         block.add(new Block("entry"));
         block.add(new Block("begin"));
+        block.get(1).pre.add(block.get(0));
         block.add(new Block("return"));
     }
 
     public void add(Block bl) {
-        if (!bl.pre.isEmpty()) {
+        if (!bl.pre.isEmpty() && !Objects.equals(bl.name.name, "begin")) {
             block.add(block.size() - 1, bl);
         }
     }

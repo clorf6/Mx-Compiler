@@ -30,8 +30,9 @@ public class IRBuilder implements ASTVisitor {
     Block currentBlock, globalInit;
     Block BeginBlock, EndBlock;
     Function currentFunction;
-    int count;
 
+    HashMap<String, globalVarEntity> strMap;
+    int count;
     integerType i32Type = new integerType(32);
     integerType i8Type = new integerType(8);
     integerType i1Type = new integerType(1);
@@ -42,6 +43,7 @@ public class IRBuilder implements ASTVisitor {
         this.currentScope = this.global = global;
         this.program = program;
         this.getVal = true;
+        this.strMap = new HashMap<>();
         this.count = 0;
     }
 
@@ -206,11 +208,11 @@ public class IRBuilder implements ASTVisitor {
         if (Objects.equals(currentFunction.name, "main")) {
             currentBlock.add(new call("_global_init", new ArrayList<>()));
         }
-        localVarEntity retval = new localVarEntity(new pointerType(currentFunction.retType), "ret.val");
+        currentFunction.retval = new localVarEntity(new pointerType(currentFunction.retType), "ret.val");
         if (!(currentFunction.retType instanceof IR.Type.voidType)) {
-            currentBlock.add(new alloca(retval, currentFunction.retType, it.pos));
+            currentBlock.add(new alloca(currentFunction.retval, currentFunction.retType, it.pos));
             if (Objects.equals(currentFunction.name, "main")) {
-                currentBlock.add(new store(new intEntity(0), retval, it.pos));
+                currentBlock.add(new store(new intEntity(0), currentFunction.retval, it.pos));
             }
         }
         for (localVarEntity par : currentFunction.param) {
@@ -230,7 +232,7 @@ public class IRBuilder implements ASTVisitor {
         if (currentFunction.retType instanceof IR.Type.voidType) {
             currentBlock.add(new ret(new localVarEntity(VoidType, "void")));
         } else {
-            Entity ret = getValue(retval, it.pos);
+            Entity ret = getValue(currentFunction.retval, it.pos);
             currentBlock.add(new ret(ret));
         }
         currentFunction.block.get(0).inst.addAll(currentFunction.block.get(1).inst);
@@ -249,15 +251,33 @@ public class IRBuilder implements ASTVisitor {
             addr = new globalVarEntity(new pointerType(type), it.name);
             currentScope.putVar(it.name, addr, it.pos);
             if (currentType instanceof intType) {
-                if (it.init != null && it.init.entity instanceof intEntity) {
-                    program.globalInsts.add(new global((globalVarEntity) addr, (intEntity) it.init.entity));
-                    return ;
-                } else program.globalInsts.add(new global((globalVarEntity) addr, new intEntity(0)));
+                if (it.init != null) {
+                    if (it.init.entity instanceof intEntity) {
+                        program.globalInsts.add(new global((globalVarEntity) addr, it.init.entity));
+                        return ;
+                    } else if (it.init.entity instanceof globalVarEntity) {
+                        program.globalInsts.add(new global((globalVarEntity) addr, it.init.entity));
+                        return ;
+                    }
+                }
+                program.globalInsts.add(new global((globalVarEntity) addr, new intEntity(0)));
             } else if (currentType instanceof boolType) {
-                if (it.init != null && it.init.entity instanceof boolEntity) {
-                    program.globalInsts.add(new global((globalVarEntity) addr, (boolEntity) it.init.entity));
+                if (it.init != null) {
+                    if (it.init.entity instanceof boolEntity) {
+                        program.globalInsts.add(new global((globalVarEntity) addr, it.init.entity));
+                        return ;
+                    } else if (it.init.entity instanceof globalVarEntity) {
+                        program.globalInsts.add(new global((globalVarEntity) addr, it.init.entity));
+                        return ;
+                    }
+                }
+                program.globalInsts.add(new global((globalVarEntity) addr, new boolEntity(false)));
+            } else if (currentType instanceof stringType) {
+                if (it.init != null && it.init.entity instanceof stringEntity) {
+                    program.globalInsts.add(new global((globalVarEntity) addr, storeStr((stringEntity) it.init.entity)));
                     return ;
-                } else program.globalInsts.add(new global((globalVarEntity) addr, new boolEntity(false)));
+                }
+                program.globalInsts.add(new global((globalVarEntity) addr, new nullEntity(addr.type)));
             } else program.globalInsts.add(new global((globalVarEntity) addr, new nullEntity(addr.type)));
         } else {
             addr = new localVarEntity(new pointerType(type), it.name);
@@ -281,15 +301,14 @@ public class IRBuilder implements ASTVisitor {
         String str = now.val;
         str = str.replace("\\\\", "\\").replace("\\n", "\n").replace("\\\"", "\"");
         int length = str.length() + 1;
-        globalVarEntity strEntity = getConstant(new
-                pointerType(new IR.Type.arrayType(i8Type, length))
-        );
         str = str.replace("\\", "\\\\").replace("\n", "\\0A").replace("\"", "\\22");
-        program.globalInsts.add(new constant(strEntity, new stringEntity(str, length)));
-
-//        localVarEntity ret = getTempVar(StrType, "const_str");
-//        currentBlock.add(new bitcast(ret, strEntity, pos));
-//        return ret;
+        globalVarEntity strEntity = strMap.get(str);
+        if (strEntity == null) {
+            strEntity = getConstant(new
+                    pointerType(new IR.Type.arrayType(i8Type, length)));
+            program.globalInsts.add(new constant(strEntity, new stringEntity(str, length)));
+            strMap.put(str, strEntity);
+        }
         return strEntity;
     }
 
@@ -497,7 +516,7 @@ public class IRBuilder implements ASTVisitor {
             if (it.ret.entity instanceof stringEntity) {
                 it.ret.entity = storeStr((stringEntity) it.ret.entity);
             }
-            currentBlock.add(new store(it.ret.entity, new localVarEntity(new pointerType(currentFunction.retType), "ret.val"), it.pos));
+            currentBlock.add(new store(it.ret.entity, currentFunction.retval, it.pos));
         }
         currentBlock.add(new br(currentFunction.block.get(currentFunction.block.size() - 1), currentBlock));
         currentFunction.add(currentBlock);
@@ -672,7 +691,6 @@ public class IRBuilder implements ASTVisitor {
             }}));
         }
         currentBlock.add(new store(length, lengthAddr, it.pos));
-
         //localVarEntity tmp = getTempVar(new pointerType(i32Type), "var");
         //currentBlock.add(new bitcast(tmp, lengthAddr, it.pos));
         //currentBlock.add(new getelementptr(array, tmp, new ArrayList<>() {{
@@ -693,6 +711,7 @@ public class IRBuilder implements ASTVisitor {
             //it.entity = getTempVar(type, "var");
             //currentBlock.add(new bitcast(it.entity, callMalloc(now.size() + 8), it.pos));
             it.entity = callMalloc(now.size() + 8);
+            it.entity.type = new pointerType(now);
 
             currentBlock.add(new call(now.name + "." + now.name, new ArrayList<>() {{
                 add(it.entity);

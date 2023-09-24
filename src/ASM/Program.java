@@ -2,11 +2,13 @@ package ASM;
 import ASM.Entity.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Program {
 
     public physicReg zero, ra, sp, gp, tp;
     public ArrayList<physicReg> t, s, a;
+    public HashMap<String, memory> varMap;
     public Section text;
     public Section data;
     public Section rodata;

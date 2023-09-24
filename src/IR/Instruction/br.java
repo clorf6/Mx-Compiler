@@ -8,13 +8,14 @@ import Utils.Error.internalError;
 import Utils.Position;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class br extends Instruction {
 
     public Entity cond;
     public labelType iftrue, iffalse;
 
-    public br(Entity cond, Block iftrue, Block iffalse, Block pre, Position pos) {
+    public br(Entity cond, Block iftrue, Block iffalse, Block p, Position pos) {
         this.cond = cond;
         this.iftrue = iftrue.name;
         this.iffalse = iffalse.name;
@@ -25,13 +26,18 @@ public class br extends Instruction {
                 throw new internalError(pos, "Br instruction cond type wrong");
             }
         }
+        Block pre = Objects.equals(p.name.name, "begin") ? p.pre.get(0) : p;
+        pre.suc.add(iftrue);
+        pre.suc.add(iffalse);
         iftrue.pre.add(pre);
         iffalse.pre.add(pre);
     }
 
-    public br(Block dest, Block pre) {
+    public br(Block dest, Block p) {
         this.iftrue = dest.name;
+        Block pre = Objects.equals(p.name.name, "begin") ? p.pre.get(0) : p;
         dest.pre.add(pre);
+        pre.suc.add(dest);
         this.cond = null;
         this.iffalse = null;
     }

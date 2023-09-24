@@ -20,6 +20,7 @@ import IR.Type.pointerType;
 import Utils.Scope.globalScope;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class ASMBuilder implements IRVisitor {
 
@@ -31,7 +32,6 @@ public class ASMBuilder implements IRVisitor {
     HashMap<String, Entity> regs;
     HashMap<String, ASM.Block> blocks;
     HashMap<String, Boolean> isAlloca;
-    int freeRegCount = 0;
 
     public ASMBuilder(Program program, globalScope global) {
         this.program = program;
@@ -39,71 +39,6 @@ public class ASMBuilder implements IRVisitor {
         this.blocks = new HashMap<>();
         this.isAlloca = new HashMap<>();
         this.global = global;
-    }
-
-    public physicReg getTempReg(int size) {
-        physicReg ret = program.t(freeRegCount);
-        ret.size = size;
-        if (++freeRegCount == 7) freeRegCount = 0;
-        return ret;
-    }
-
-    public memory updateMem(memory now) {
-        if (now.offset instanceof imm) {
-            int pos = ((imm) now.offset).val;
-            if (pos >= 2048 || pos < -2048) {
-                physicReg tmp = storeImm((imm) now.offset, 4);
-                currentBlock.add(new ASM.Instruction.binary(tmp, now.x, "add", tmp));
-                return new memory(tmp, new imm(0), now.size);
-            }
-        }
-        return now;
-    }
-
-    public physicReg loadMem(memory now) {
-        physicReg ret = getTempReg(now.size);
-        currentBlock.add(new ASM.Instruction.load(ret, updateMem(now)));
-        return ret;
-    }
-
-    public Entity convertReg(IR.Entity.Entity now, boolean load) {
-        if (now instanceof intEntity) {
-            int val = ((intEntity) now).val;
-            Entity ret = new imm(val);
-            if (val < -2048 || val >= 2048) ret = storeImm((imm) ret, 4);
-            return ret;
-        } else if (now instanceof boolEntity) {
-            return new imm(((boolEntity) now).val ? 1 : 0);
-        } else if (now instanceof nullEntity) {
-            return new imm(0);
-        } else {
-            Entity res = regs.get(currentFunction.name + "."  + now.toString());
-            if (res == null) {
-                if (now instanceof globalVarEntity) {
-                    physicReg ret = getTempReg(now.type.size());
-                    currentBlock.add(new la(ret, ((globalVarEntity) now).name));
-                    return ret;
-                } else {
-                    //System.out.println(((varEntity) now).name);
-                    currentFunction.size += now.type.size();
-                    //System.out.println(currentFunction.size);
-                    memory pos = new memory(program.s(0), new imm(-currentFunction.size), now.type.size());
-                    regs.put(currentFunction.name + "."  + now, pos);
-                    return pos;
-                }
-            } else {
-                if (res instanceof memory && load) {
-                    return loadMem((memory) res);
-                }
-                return res;
-            }
-        }
-    }
-
-    public physicReg storeImm(imm val, int size) {
-        physicReg tmp = getTempReg(size);
-        currentBlock.add(new li(tmp, val));
-        return tmp;
     }
 
     @Override
@@ -121,6 +56,7 @@ public class ASMBuilder implements IRVisitor {
     public void visit(IR.Function it) {
         currentFunction = it;
         currentFunction.size = 8;
+        currentFunction.callSize = 0;
         ASM.Block fir;
         fir = currentBlock = new ASM.Block(currentFunction.name);
         blocks.put(currentBlock.name, currentBlock);
@@ -144,6 +80,7 @@ public class ASMBuilder implements IRVisitor {
             it.block.get(i).accept(this);
             program.text.block.add(currentBlock);
         }
+        currentFunction.size += currentFunction.callSize;
         int size = (currentFunction.size / 16 + ((currentFunction.size % 16 != 0) ? 1 : 0)) * 16;
         Entity st = getTempReg(4);
         reg tmp = getTempReg(4);
@@ -166,7 +103,14 @@ public class ASMBuilder implements IRVisitor {
 
     @Override
     public void visit(IR.Block it) {
-        it.inst.forEach(ins -> ins.accept(this));
+//        it.phiInst.forEach(ins -> {
+//            freeRegCount = 0;
+//            ins.accept(this);
+//        });
+        it.inst.forEach(ins -> {
+            freeRegCount = 0;
+            ins.accept(this);
+        });
     }
 
     @Override
@@ -261,11 +205,13 @@ public class ASMBuilder implements IRVisitor {
     @Override
     public void visit(IR.Instruction.global it) {
         if (it.init instanceof intEntity) {
-            program.data.word.add(new Word(it.var.name, ((intEntity) it.init).val));
+            program.data.word.add(new Word(it.var.name, Integer.toString(((intEntity) it.init).val), false));
         } else if (it.init instanceof boolEntity) {
-            program.data.word.add(new Word(it.var.name, ((boolEntity) it.init).val ? 1 : 0));
+            program.data.word.add(new Word(it.var.name, ((boolEntity) it.init).val ? "1" : "0", true));
+        } else if (it.init instanceof nullEntity) {
+            program.data.word.add(new Word(it.var.name, "0", false));
         } else {
-            program.data.word.add(new Word(it.var.name, 0));
+            program.data.word.add(new Word(it.var.name, ((varEntity) it.init).name, false));
         }
     }
 
@@ -379,12 +325,14 @@ public class ASMBuilder implements IRVisitor {
             if (tmp instanceof reg) currentBlock.add(new mv(program.a(i), (reg) tmp));
             else if (tmp instanceof imm) currentBlock.add(new li(program.a(i), (imm) tmp));
         }
+        int callsize = 0;
         for (int i = 8; i < it.args.size(); i++) {
             Entity tmp = convertReg(it.args.get(i), true);
             if (tmp instanceof imm) tmp = storeImm((imm) tmp, 4);
             currentBlock.add(new ASM.Instruction.store((reg) tmp, new memory(program.sp, new imm((i - 8) * 4), ((reg) tmp).size)));
-            currentFunction.size += 4;
+            callsize += 4;
         }
+        currentFunction.callSize = Integer.max(currentFunction.callSize, callsize);
         currentBlock.add(new ASM.Instruction.call(it.name));
         if (it.res != null) {
             Entity convertedRes = convertReg(it.res, false);
@@ -404,7 +352,9 @@ public class ASMBuilder implements IRVisitor {
             res = getTempReg(it.res.type.size());
         } else res = (reg) convertedRes;
         for (int i = 0; i < it.label.size(); i++) {
-            ASM.Block nowBlock = blocks.get(currentFunction.name + "." + it.label.get(i).name);
+            ASM.Block nowBlock;
+            if (Objects.equals(it.label.get(i).name, "entry")) nowBlock = blocks.get(currentFunction.name);
+            else nowBlock = blocks.get(currentFunction.name + "." + it.label.get(i).name);
             if (it.val.get(i) instanceof intEntity) nowBlock.inst.add(nowBlock.inst.size() - 1,
                     new li(res, new imm(((intEntity) it.val.get(i)).val)));
             else if (it.val.get(i) instanceof boolEntity) nowBlock.inst.add(nowBlock.inst.size() - 1,
