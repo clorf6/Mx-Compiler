@@ -35,6 +35,12 @@ public class Function {
         }
     }
 
+    public void merge() {
+        for (Block bl : block) {
+            bl.merge();
+        }
+    }
+
     public String toString() {
         StringBuilder ret = new StringBuilder("define " + retType.toString() + " @" + name + "(");
         for (int i = 0; i < param.size(); i++) {

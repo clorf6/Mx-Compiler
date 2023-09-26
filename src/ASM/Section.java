@@ -17,6 +17,10 @@ public class Section {
         str = new ArrayList<>();
     }
 
+    public void merge() {
+        block.forEach(Block::merge);
+    }
+
     public String toString() {
         StringBuilder ret = new StringBuilder(".section " + name + "\n");
         for (String val : globl) {

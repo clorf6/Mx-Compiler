@@ -41,6 +41,10 @@ public class Program {
         return a.get(i);
     }
 
+    public void merge() {
+        text.merge();
+    }
+
     public String toString() {
         return text.toString() + "\n" + data.toString() + "\n" + rodata.toString();
     }

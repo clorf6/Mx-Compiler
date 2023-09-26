@@ -14,6 +14,12 @@ public class Program {
         globalInsts = new Global();
     }
 
+    public void merge() {
+        for (Function func : funcs) {
+            func.merge();
+        }
+    }
+
     public String toString() {
         StringBuilder ret = new StringBuilder(globalInsts.toString());
         for (Function func : funcs) {

@@ -3,20 +3,30 @@ package ASM;
 import ASM.Instruction.Instruction;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Block {
     public String name;
-    public ArrayList<Instruction> inst;
+    public LinkedList<Instruction> inst;
+    public LinkedList<Instruction> phiInst;
+    public LinkedList<Instruction> jumpInst;
     public boolean isFir;
 
     public Block(String name) {
         this.name = name;
         this.isFir = false;
-        this.inst = new ArrayList<>();
+        this.phiInst = new LinkedList<>();
+        this.jumpInst = new LinkedList<>();
+        this.inst = new LinkedList<>();
     }
 
     public void add(Instruction ins) {
         inst.add(ins);
+    }
+
+    public void merge() {
+        inst.addAll(phiInst);
+        inst.addAll(jumpInst);
     }
 
     public String toString() {

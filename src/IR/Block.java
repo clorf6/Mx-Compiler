@@ -44,11 +44,14 @@ public class Block {
         phiInst.add(ins);
     }
 
+    public void merge() {
+        for (phi ins : phiInst) {
+            inst.addFirst(ins);
+        }
+    }
+
     public String toString() {
         StringBuilder ret = new StringBuilder(name.name + ":\n");
-        if (!phiInst.isEmpty()) {
-            for (phi ins : phiInst) ret.append("\t").append(ins.toString()).append("\n");
-        }
         for (Instruction ins : inst) ret.append("\t").append(ins.toString()).append("\n");
         ret.append("\n");
         return ret.toString();

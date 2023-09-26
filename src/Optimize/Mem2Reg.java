@@ -26,6 +26,7 @@ public class Mem2Reg {
             }
             rename(func.block.get(0));
         }
+        program.merge();
     }
 
     public void HandleAlloca(alloca it, Function func) {

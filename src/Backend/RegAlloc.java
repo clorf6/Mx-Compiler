@@ -3,7 +3,7 @@ package Backend;
 import ASM.*;
 import ASM.Instruction.*;
 import ASM.Entity.*;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.HashMap;
 
 public class RegAlloc implements ASMVisitor {
@@ -12,7 +12,7 @@ public class RegAlloc implements ASMVisitor {
     public Block currentBlock;
     public int currentSize;
     public HashMap<virtualReg, memory> memoryMap;
-    public ArrayList<Instruction> currentInsts;
+    public LinkedList<Instruction> currentInsts;
 
     public RegAlloc(Program program) {
         this.program = program;
@@ -58,7 +58,7 @@ public class RegAlloc implements ASMVisitor {
     public void visit(Block block) {
         if (block.isFir) currentSize = 8;
         currentBlock = block;
-        currentInsts = new ArrayList<>();
+        currentInsts = new LinkedList<>();
         block.inst.forEach(ins -> ins.accept(this));
         currentBlock.inst = currentInsts;
     }
