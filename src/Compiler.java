@@ -53,17 +53,17 @@ public class Compiler {
             Program program = new Program();
             new IRBuilder(program, gScope).visit(ASTRoot);
             //output1.write(program.toString().getBytes());
-            new Mem2Reg(program);
+            //new Mem2Reg(program);
             //output.write(program.toString().getBytes());
-            ASM.Program program1 = new ASM.Program();
-            new InstSelector(program1, gScope).visit(program);
+            //ASM.Program program1 = new ASM.Program();
+            //new InstSelector(program1, gScope).visit(program);
             //ASMoutput2.write(program1.toString().getBytes());
-            new RegAlloc(program1);
+            //new RegAlloc(program1);
             //ASMoutput.write(program1.toString().getBytes());
-//            ASM.Program program2 = new ASM.Program();
-//            new ASMBuilder(program2, gScope).visit(program);
+            ASM.Program program2 = new ASM.Program();
+            new ASMBuilder(program2, gScope).visit(program);
 //            ASMoutput1.write(program2.toString().getBytes());
-            System.out.println(program1);
+            System.out.println(program2);
         } catch (Utils.Error.Error er) {
             System.err.println(er);
             throw new RuntimeException();
