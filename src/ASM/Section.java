@@ -32,7 +32,9 @@ public class Section {
             ret.append(s.toString()).append("\n");
         }
         return ret.toString();
-
     }
 
+    public void accept(ASMVisitor visitor) {
+        visitor.visit(this);
+    }
 }

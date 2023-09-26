@@ -1,4 +1,6 @@
 import AST.rootNode;
+import Backend.InstSelector;
+import Backend.RegAlloc;
 import Frontend.ASTBuilder;
 import Frontend.IRBuilder;
 import Frontend.SemanticChecker;
@@ -21,15 +23,19 @@ import java.io.OutputStream;
 
 public class Compiler {
     public static void main(String[] args) throws Exception {
-        //String inputName = "test.txt";
-        //InputStream input = new FileInputStream(inputName);
+        String inputName = "test.txt";
+        InputStream input = new FileInputStream(inputName);
         String outputName = "output.ll";
         OutputStream output = new FileOutputStream(outputName);
         String ASMoutputName = "test.s";
         OutputStream ASMoutput = new FileOutputStream(ASMoutputName);
+        String ASMoutputName2 = "test1.s";
+        OutputStream ASMoutput2 = new FileOutputStream(ASMoutputName2);
+        String ASMoutputName1 = "test_asmbuilder.s";
+        OutputStream ASMoutput1 = new FileOutputStream(ASMoutputName1);
         String outputName1 = "output1.ll";
         OutputStream output1 = new FileOutputStream(outputName1);
-        InputStream input = System.in;
+        //InputStream input = System.in;
         try {
             rootNode ASTRoot;
             globalScope gScope = new globalScope(null);
@@ -47,11 +53,16 @@ public class Compiler {
             Program program = new Program();
             new IRBuilder(program, gScope).visit(ASTRoot);
             //new Mem2Reg(program);
-            //output.write(program.toString().getBytes());
+            output.write(program.toString().getBytes());
             ASM.Program program1 = new ASM.Program();
-            new ASMBuilder(program1, gScope).visit(program);
-            //ASMoutput.write(program1.toString().getBytes());
-            System.out.println(program1);
+            new InstSelector(program1, gScope).visit(program);
+            //ASMoutput2.write(program1.toString().getBytes());
+            new RegAlloc(program1);
+            ASMoutput.write(program1.toString().getBytes());
+//            ASM.Program program2 = new ASM.Program();
+//            new ASMBuilder(program2, gScope).visit(program);
+//            ASMoutput1.write(program2.toString().getBytes());
+//            System.out.println(program1);
         } catch (Utils.Error.Error er) {
             System.err.println(er);
             throw new RuntimeException();

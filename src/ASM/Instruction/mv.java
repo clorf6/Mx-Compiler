@@ -1,5 +1,6 @@
 package ASM.Instruction;
 
+import ASM.ASMVisitor;
 import ASM.Entity.reg;
 
 public class mv extends Instruction {
@@ -12,5 +13,10 @@ public class mv extends Instruction {
     @Override
     public String toString() {
         return String.format("%-8s", "mv") + rd + ", " + rs;
+    }
+
+    @Override
+    public void accept(ASMVisitor visitor) {
+        visitor.visit(this);
     }
 }

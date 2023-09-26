@@ -1,5 +1,6 @@
 package ASM.Instruction;
 
+import ASM.ASMVisitor;
 import ASM.Entity.Entity;
 import IR.Instruction.*;
 import Utils.Error.assemblyError;
@@ -35,10 +36,14 @@ public class binary extends Instruction {
         this.op2 = op2;
     }
 
-
     @Override
     public String toString() {
         return String.format("%-8s", op + (isImm ? "i" : "")) +
                 res + ", " + op1 + ", " + op2;
+    }
+
+    @Override
+    public void accept(ASMVisitor visitor) {
+        visitor.visit(this);
     }
 }

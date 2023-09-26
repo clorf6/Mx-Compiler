@@ -8,7 +8,6 @@ public class Program {
 
     public physicReg zero, ra, sp, gp, tp;
     public ArrayList<physicReg> t, s, a;
-    public HashMap<String, memory> varMap;
     public Section text;
     public Section data;
     public Section rodata;
@@ -44,5 +43,9 @@ public class Program {
 
     public String toString() {
         return text.toString() + "\n" + data.toString() + "\n" + rodata.toString();
+    }
+
+    public void accept(ASMVisitor visitor) {
+        visitor.visit(this);
     }
 }

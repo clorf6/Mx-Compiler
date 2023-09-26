@@ -7,9 +7,11 @@ import java.util.ArrayList;
 public class Block {
     public String name;
     public ArrayList<Instruction> inst;
+    public boolean isFir;
 
     public Block(String name) {
         this.name = name;
+        this.isFir = false;
         this.inst = new ArrayList<>();
     }
 
@@ -23,5 +25,8 @@ public class Block {
             ret.append("\t").append(ins.toString()).append("\n");
         }
         return ret.toString();
+    }
+    public void accept(ASMVisitor visitor) {
+        visitor.visit(this);
     }
 }
