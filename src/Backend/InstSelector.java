@@ -230,6 +230,7 @@ public class InstSelector implements IRVisitor {
         //currentFunction.size += it.res.type.size();
         reg res;
         reg p = (reg) convertReg(it.p);
+        res = (reg) convertReg(it.res);
         if (it.idx.size() == 1) {
             if (it.idx.get(0) instanceof intEntity) {
                 res = (reg) convertReg(it.res);
@@ -238,11 +239,11 @@ public class InstSelector implements IRVisitor {
                 if (val < -2048 || val >= 2048) tmp = storeImm((imm) tmp, 4);
                 currentBlock.add(new ASM.Instruction.binary(res, p, binary.binaryOp.add, tmp, tmp instanceof imm));
             } else {
-                res = storeImm(new imm(((pointerType) it.p.type).elemType.size()), 4);
-                regs.put(currentFunction.name + "."  + it.res.toString(), res);
                 Entity idx = convertReg(it.idx.get(0));
-                currentBlock.add(new ASM.Instruction.binary(res, idx, "mul",
-                        res));
+                if (((pointerType) it.p.type).elemType.size() == 1) currentBlock.add(new ASM.Instruction.mv(res, (reg) idx));
+                else currentBlock.add(new ASM.Instruction.binary(res, idx, "slli",
+                            new imm(2)));
+                regs.put(currentFunction.name + "."  + it.res.toString(), res);
                 currentBlock.add(new ASM.Instruction.binary(res, p, "add", res));
             }
         } else {
