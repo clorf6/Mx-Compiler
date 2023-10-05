@@ -2,6 +2,9 @@ package ASM.Instruction;
 
 import ASM.ASMVisitor;
 import ASM.Entity.Entity;
+import ASM.Entity.virtualReg;
+
+import java.util.HashSet;
 
 public class comp extends Instruction {
     public String type;
@@ -11,6 +14,20 @@ public class comp extends Instruction {
         this.type = type;
         this.res = res;
         this.op = op;
+    }
+
+    @Override
+    public HashSet<virtualReg> getUse() {
+        HashSet<virtualReg> use = new HashSet<>();
+        if (op instanceof virtualReg) use.add((virtualReg) op);
+        return use;
+    }
+
+    @Override
+    public HashSet<virtualReg> getDef() {
+        HashSet<virtualReg> def = new HashSet<>();
+        if (res instanceof virtualReg) def.add((virtualReg) res);
+        return def;
     }
 
     @Override

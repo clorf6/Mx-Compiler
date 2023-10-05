@@ -12,12 +12,12 @@ import java.util.*;
 public class Mem2Reg {
 
     public ArrayList<Block> def;
-    public HashMap<localVarEntity, Boolean> isAlloca;
+    public HashSet<localVarEntity> isAlloca;
     public HashMap<localVarEntity, Entity> replace;
     public Mem2Reg(Program program) {
         this.def = new ArrayList<>();
         this.replace = new HashMap<>();
-        this.isAlloca = new HashMap<>();
+        this.isAlloca = new HashSet<>();
         for (Function func : program.funcs) {
             new DomtreeBuilder(func);
             for (var ins : func.block.get(0).inst) {
@@ -41,21 +41,21 @@ public class Mem2Reg {
         }
         //System.out.println(it);
         //System.out.println((localVarEntity) it.res);
-        isAlloca.put((localVarEntity) it.res, true);
+        isAlloca.add((localVarEntity) it.res);
         Queue<Block> q = new LinkedList<>(def);
-        HashMap<Block, Boolean> vis = new HashMap<>();
-        HashMap<Block, Boolean> isAdd = new HashMap<>();
+        HashSet<Block> vis = new HashSet<>();
+        HashSet<Block> isAdd = new HashSet<>();
         while (!q.isEmpty()) {
             Block now = q.poll();
             for (Block nex : now.DomFrontier) {
-                if (!isAdd.containsKey(nex)) {
+                if (!isAdd.contains(nex)) {
                     //System.out.println(nex.name + " " + ((localVarEntity) it.res).name);
                     if (Objects.equals(nex.name.name, "return") && !Objects.equals(((localVarEntity) it.res).name, "ret.val")) continue;
                     nex.addPhi(new phi(new localVarEntity(((pointerType) it.res.type).elemType, ((localVarEntity) it.res).name + ++count),
                             (localVarEntity) it.res, new ArrayList<>(), new ArrayList<>(), null));
-                    isAdd.put(nex, true);
-                    if (!vis.containsKey(nex)) {
-                        vis.put(nex, true);
+                    isAdd.add(nex);
+                    if (!vis.contains(nex)) {
+                        vis.add(nex);
                         q.offer(nex);
                     }
                 }
@@ -80,9 +80,9 @@ public class Mem2Reg {
             replace.put(ins.addr, ins.res);
         }
         for (Instruction ins : it.inst) {
-            if (ins instanceof load && ((load) ins).p instanceof localVarEntity && isAlloca.containsKey((localVarEntity) ((load) ins).p)) {
+            if (ins instanceof load && ((load) ins).p instanceof localVarEntity && isAlloca.contains((localVarEntity) ((load) ins).p)) {
                 replace.put((localVarEntity) ((load) ins).res, getReplace((localVarEntity) ((load) ins).p));
-            } else if (ins instanceof store && ((store) ins).p instanceof localVarEntity && isAlloca.containsKey((localVarEntity) ((store) ins).p)) {
+            } else if (ins instanceof store && ((store) ins).p instanceof localVarEntity && isAlloca.contains((localVarEntity) ((store) ins).p)) {
                 if (((store) ins).val instanceof constEntity || ((store) ins).val instanceof globalVarEntity) replace.put((localVarEntity) ((store) ins).p, ((store) ins).val);
                 else if (((store) ins).val instanceof localVarEntity) replace.put((localVarEntity) ((store) ins).p, getReplace((localVarEntity) ((store) ins).val));
                 //System.out.println(((store) ins).p + " " + ((pointerType) ((store) ins).p.type).getText() + " ? " + replace.get((localVarEntity) ((store) ins).p));

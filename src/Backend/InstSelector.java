@@ -7,43 +7,37 @@ import ASM.Word;
 import IR.*;
 import IR.Entity.*;
 import IR.Type.*;
-import IR.Instruction.*;
 import ASM.Program;
 import ASM.Entity.*;
 import IR.Instruction.binary;
-import IR.Instruction.br;
-import IR.Instruction.call;
-import IR.Instruction.load;
-import IR.Instruction.ret;
-import IR.Instruction.store;
 import IR.Type.pointerType;
 import Utils.Scope.globalScope;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class InstSelector implements IRVisitor {
 
     Program program;
-    Function currentFunction;
+    ASM.Function currentFunction;
 
     globalScope global;
-    ASM.Block currentBlock, retBlock;
+    ASM.Block currentBlock;
     HashMap<String, reg> regs;
     HashMap<String, ASM.Block> blocks;
-    HashMap<String, Boolean> isAlloca;
+    HashSet<String> isAlloca;
     int count = 0;
 
     public InstSelector(Program program, globalScope global) {
         this.program = program;
         this.regs = new HashMap<>();
         this.blocks = new HashMap<>();
-        this.isAlloca = new HashMap<>();
+        this.isAlloca = new HashSet<>();
         this.global = global;
     }
 
     public virtualReg getTempReg(int size) {
-        currentFunction.size += size;
         return new virtualReg("var" + ++count, size);
     }
 
@@ -70,7 +64,7 @@ public class InstSelector implements IRVisitor {
             reg ret = regs.get(currentFunction.name + "."  + now.toString());
             if (ret == null) {
                 ret = getTempReg(now.type.size());
-                regs.put(currentFunction.name + "."  + now.toString(), ret);
+                regs.put(currentFunction.name + "."  + now, ret);
             }
             return ret;
         }
@@ -90,13 +84,14 @@ public class InstSelector implements IRVisitor {
 
     @Override
     public void visit(IR.Function it) {
-        currentFunction = it;
-        currentFunction.size = 8;
+        currentFunction = new ASM.Function(it.name);
         currentFunction.callSize = 0;
-        ASM.Block fir;
-        fir = currentBlock = new ASM.Block(currentFunction.name);
+        currentBlock = new ASM.Block(currentFunction.name);
         blocks.put(currentBlock.name, currentBlock);
-        currentBlock.isFir = true;
+        for (int i = 1; i < it.block.size(); i++) {
+            String blockName = currentFunction.name + "." + it.block.get(i).name.name;
+            blocks.put(blockName, new ASM.Block(blockName));
+        }
         program.text.globl.add(currentFunction.name);
         for (int i = 0; i < Integer.min(8, it.param.size()); i++) {
             program.a(i).size = it.param.get(i).type.size();
@@ -111,34 +106,13 @@ public class InstSelector implements IRVisitor {
             regs.put(currentFunction.name + "."  + it.param.get(i).toString(), tmp);
         }
         it.block.get(0).accept(this);
-        program.text.block.add(currentBlock);
-        for (int i = 1; i < it.block.size(); i++) {
-            String blockName = currentFunction.name + "." + it.block.get(i).name.name;
-            blocks.put(blockName, new ASM.Block(blockName));
-        }
+        currentFunction.block.add(currentBlock);
         for (int i = 1; i < it.block.size(); i++) {
             currentBlock = blocks.get(currentFunction.name + "." + it.block.get(i).name.name);
             it.block.get(i).accept(this);
-            program.text.block.add(currentBlock);
+            currentFunction.block.add(currentBlock);
         }
-        currentFunction.size += currentFunction.callSize;
-        int size = (currentFunction.size / 16 + ((currentFunction.size % 16 != 0) ? 1 : 0)) * 16;
-        reg tmp = program.t(1);
-        fir.inst.add(0, new ASM.Instruction.store(tmp, new memory(program.s(0), new imm(-8), 4)));
-        fir.inst.add(0, new ASM.Instruction.store(program.ra, new memory(program.s(0), new imm(-4), 4)));
-        fir.inst.add(0, new ASM.Instruction.binary(program.sp, program.sp,
-                binary.binaryOp.sub, program.t(0), false));
-        fir.inst.add(0, new mv(program.s(0), program.sp));
-        fir.inst.add(0, new mv(tmp, program.s(0)));
-        fir.inst.add(0, new li(program.t(0), new imm(size)));
-        Entity st = new imm(size);
-        if (size < -2048 || size >= 2048) {
-            st = program.t(0);
-            retBlock.inst.add(retBlock.inst.size() - 1, new li((reg) st, new imm(size)));
-        }
-        retBlock.inst.add(retBlock.inst.size() - 1, new ASM.Instruction.binary(program.sp, program.sp, binary.binaryOp.add, st, st instanceof imm));
-        retBlock.inst.add(retBlock.inst.size() - 1, new ASM.Instruction.load(program.s(0), new memory(program.sp, new imm(-8), 4)));
-        retBlock.inst.add(retBlock.inst.size() - 1, new ASM.Instruction.load(program.ra, new memory(program.sp, new imm(-4), 4)));
+        program.text.func.add(currentFunction);
     }
 
     @Override
@@ -161,18 +135,28 @@ public class InstSelector implements IRVisitor {
         }
     }
 
+    public void addedge(ASM.Block now, ASM.Block nex) {
+        now.suc.add(nex);
+        nex.pre.add(now);
+    }
+
     @Override
     public void visit(IR.Instruction.br it) {
+        ASM.Block nex;
         if (it.cond != null) {
             Entity cond = convertReg(it.cond);
+            nex = blocks.get(currentFunction.name + "." + it.iffalse.name);
+            addedge(currentBlock, nex);
             currentBlock.jumpInst.add(new ASM.Instruction.br("beqz", cond, currentFunction.name + "." + it.iffalse.name));
         }
+        nex = blocks.get(currentFunction.name + "." + it.iftrue.name);
+        addedge(currentBlock, nex);
         currentBlock.jumpInst.add(new j(currentFunction.name + "." + it.iftrue.name));
     }
 
     @Override
     public void visit(IR.Instruction.ret it) {
-        retBlock = currentBlock;
+        currentFunction.retBlock = currentBlock;
         if (!(it.val.type instanceof voidType)) {
             Entity val = convertReg(it.val);
             if (val instanceof imm) currentBlock.add(new li(program.a(0), (imm) val));
@@ -185,7 +169,7 @@ public class InstSelector implements IRVisitor {
     public void visit(IR.Instruction.alloca it) {
         virtualReg tmp = getTempReg(it.type.size());
         regs.put(currentFunction.name + "."  + it.res.toString(), tmp);
-        isAlloca.put(((varEntity) it.res).name, true);
+        isAlloca.add(((varEntity) it.res).name);
     }
 
     @Override
@@ -193,7 +177,7 @@ public class InstSelector implements IRVisitor {
         reg res = (reg) convertReg(it.res);
         //currentFunction.size += it.res.type.size();
         Entity pos = convertReg(it.p);
-        if (isAlloca.get(((varEntity) it.p).name) != null) currentBlock.add(new mv(res, (reg) pos));
+        if (isAlloca.contains(((varEntity) it.p).name)) currentBlock.add(new mv(res, (reg) pos));
         else currentBlock.add(new ASM.Instruction.load(res, new memory((reg) pos, new imm(0), res.size)));
     }
 
@@ -202,7 +186,7 @@ public class InstSelector implements IRVisitor {
         Entity val = convertReg(it.val);
         if (val instanceof imm) val = storeImm((imm) val, it.val.type.size());
         Entity pos = convertReg(it.p);
-        if (isAlloca.get(((varEntity) it.p).name) != null) currentBlock.add(new mv((reg) pos, (reg) val));
+        if (isAlloca.contains(((varEntity) it.p).name)) currentBlock.add(new mv((reg) pos, (reg) val));
         else currentBlock.add(new ASM.Instruction.store((reg) val, new memory((reg) pos, new imm(0), ((reg) val).size)));
     }
 
@@ -325,10 +309,10 @@ public class InstSelector implements IRVisitor {
             Entity tmp = convertReg(it.args.get(i));
             if (tmp instanceof imm) tmp = storeImm((imm) tmp, 4);
             currentBlock.add(new ASM.Instruction.store((reg) tmp, new memory(program.sp, new imm((i - 8) * 4), ((reg) tmp).size)));
-            callsize += 4;
+            callsize += ((reg) tmp).size;
         }
         currentFunction.callSize = Integer.max(currentFunction.callSize, callsize);
-        currentBlock.add(new ASM.Instruction.call(it.name));
+        currentBlock.add(new ASM.Instruction.call(it.name, program));
         if (it.res != null) {
             reg res = (reg) convertReg(it.res);
             //currentFunction.size += it.res.type.size();

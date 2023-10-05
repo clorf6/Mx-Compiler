@@ -3,6 +3,8 @@ package ASM.Instruction;
 import ASM.ASMVisitor;
 import ASM.Entity.*;
 
+import java.util.HashSet;
+
 public class li extends Instruction {
     public reg rd;
     public imm val;
@@ -10,6 +12,18 @@ public class li extends Instruction {
     public li(reg rd, imm val) {
         this.rd = rd;
         this.val = val;
+    }
+
+    @Override
+    public HashSet<virtualReg> getUse() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<virtualReg> getDef() {
+        HashSet<virtualReg> def = new HashSet<>();
+        if (rd instanceof virtualReg) def.add((virtualReg) rd);
+        return def;
     }
 
     @Override

@@ -3,7 +3,7 @@ import Utils.Position;
 
 public abstract class Error extends RuntimeException {
     private Position pos;
-    private String message;
+    private final String message;
 
     public Error(String msg, Position pos) {
         this.pos = pos;

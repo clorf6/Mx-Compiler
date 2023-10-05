@@ -3,6 +3,7 @@ import ASM.Entity.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class Program {
 
@@ -39,6 +40,12 @@ public class Program {
 
     public physicReg a(int i) {
         return a.get(i);
+    }
+
+    public HashSet<reg> callerSave() {
+        HashSet<reg> ret = new HashSet<>(t);
+        ret.addAll(a);
+        return ret;
     }
 
     public void merge() {

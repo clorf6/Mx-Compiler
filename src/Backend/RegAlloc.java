@@ -26,7 +26,7 @@ public class RegAlloc implements ASMVisitor {
             imm pos;
             if (memoryMap.containsKey((virtualReg) now)) {
                 offset = memoryMap.get((virtualReg) now);
-                pos = (imm) offset.offset;
+                pos = offset.offset;
             } else {
                 pos = new imm(- currentSize - ((virtualReg) now).size);
                 currentSize += ((virtualReg) now).size;
@@ -52,11 +52,37 @@ public class RegAlloc implements ASMVisitor {
 
     @Override
     public void visit(Section section) {
-        section.block.forEach(block -> block.accept(this));
+        section.func.forEach(fc -> fc.accept(this));
+    }
+
+    @Override
+    public void visit(Function function) {
+        currentSize = 8;
+        function.block.forEach(block -> block.accept(this));
+        function.size = currentSize + function.callSize;
+        int size = (function.size / 16 + ((function.size % 16 != 0) ? 1 : 0)) * 16;
+        Block fir = function.block.get(0);
+        Block las = function.retBlock;
+        program.t(0).size = 4;
+        program.t(1).size = 4;
+        fir.inst.add(0, new ASM.Instruction.store(program.t(1), new memory(program.s(0), new imm(-8), 4)));
+        fir.inst.add(0, new ASM.Instruction.store(program.ra, new memory(program.s(0), new imm(-4), 4)));
+        fir.inst.add(0, new ASM.Instruction.binary(program.sp, program.sp,
+                IR.Instruction.binary.binaryOp.sub, program.t(0), false));
+        fir.inst.add(0, new mv(program.s(0), program.sp));
+        fir.inst.add(0, new mv(program.t(1), program.s(0)));
+        fir.inst.add(0, new li(program.t(0), new imm(size)));
+        Entity st = new imm(size);
+        if (size < -2048 || size >= 2048) {
+            st = program.t(0);
+            las.inst.add(las.inst.size() - 1, new li((reg) st, new imm(size)));
+        }
+        las.inst.add(las.inst.size() - 1, new ASM.Instruction.binary(program.sp, program.sp, IR.Instruction.binary.binaryOp.add, st, st instanceof imm));
+        las.inst.add(las.inst.size() - 1, new ASM.Instruction.load(program.s(0), new memory(program.sp, new imm(-8), 4)));
+        las.inst.add(las.inst.size() - 1, new ASM.Instruction.load(program.ra, new memory(program.sp, new imm(-4), 4)));
     }
 
     public void visit(Block block) {
-        if (block.isFir) currentSize = 8;
         currentBlock = block;
         currentInsts = new LinkedList<>();
         block.inst.forEach(ins -> ins.accept(this));
@@ -73,6 +99,7 @@ public class RegAlloc implements ASMVisitor {
 
     @Override
     public void visit(call inst) {
+
         currentInsts.add(inst);
     }
 

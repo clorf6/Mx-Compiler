@@ -5,6 +5,8 @@ import ASM.Instruction.*;
 public interface ASMVisitor {
     void visit(Program program);
     void visit(Section section);
+
+    void visit(Function function);
     void visit(Block block);
 
     void visit(binary inst);

@@ -1,9 +1,12 @@
 package ASM.Instruction;
 
 import ASM.ASMVisitor;
-import ASM.Entity.Entity;
+import ASM.Entity.*;
 import IR.Instruction.*;
 import Utils.Error.assemblyError;
+
+import java.util.HashSet;
+
 public class binary extends Instruction {
 
     public Entity res, op1, op2;
@@ -40,6 +43,21 @@ public class binary extends Instruction {
     public String toString() {
         return String.format("%-8s", op + (isImm ? "i" : "")) +
                 res + ", " + op1 + ", " + op2;
+    }
+
+    @Override
+    public HashSet<virtualReg> getUse() {
+        HashSet<virtualReg> use = new HashSet<>();
+        if (op1 instanceof virtualReg) use.add((virtualReg) op1);
+        if (op2 instanceof virtualReg) use.add((virtualReg) op2);
+        return use;
+    }
+
+    @Override
+    public HashSet<virtualReg> getDef() {
+        HashSet<virtualReg> def = new HashSet<>();
+        if (res instanceof virtualReg) def.add((virtualReg) res);
+        return def;
     }
 
     @Override

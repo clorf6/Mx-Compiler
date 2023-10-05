@@ -5,20 +5,20 @@ import java.util.ArrayList;
 public class Section {
     public String name;
     public ArrayList<String> globl;
-    public ArrayList<Block> block;
+    public ArrayList<Function> func;
     public ArrayList<Word> word;
     public ArrayList<Asciz> str;
 
     public Section(String name) {
         this.name = name;
         globl = new ArrayList<>();
-        block = new ArrayList<>();
+        func = new ArrayList<>();
         word = new ArrayList<>();
         str = new ArrayList<>();
     }
 
     public void merge() {
-        block.forEach(Block::merge);
+        func.forEach(Function::merge);
     }
 
     public String toString() {
@@ -26,14 +26,14 @@ public class Section {
         for (String val : globl) {
             ret.append(".globl ").append(val).append("\n");
         }
-        for (Block bl : block) ret.append(bl.toString()).append("\n");
+        for (Function fc : func) ret.append(fc.toString()).append("\n");
         for (Word wd : word) {
             ret.append(".globl ").append(wd.name).append("\n");
-            ret.append(wd.toString()).append("\n");
+            ret.append(wd).append("\n");
         }
         for (Asciz s : str) {
             ret.append(".globl ").append(s.name).append("\n");
-            ret.append(s.toString()).append("\n");
+            ret.append(s).append("\n");
         }
         return ret.toString();
     }
