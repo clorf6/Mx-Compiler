@@ -5,6 +5,7 @@ import IR.Function;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Stack;
 
 public class
 DomtreeBuilder {
@@ -33,13 +34,18 @@ DomtreeBuilder {
         return x.fa = p;
     }
 
-    public void dfs(Block u) {
-        u.dfn = ++tot;
-        id.put(tot, u);
-        for (Block v : u.suc) {
-            if (v.dfn != 0) continue;
-            v.anc = u;
-            dfs(v);
+    public void dfs(Block now) {
+        Stack<Block> slot = new Stack<>();
+        slot.push(now);
+        while (!slot.isEmpty()) {
+            Block u = slot.pop();
+            u.dfn = ++tot;
+            id.put(tot, u);
+            for (Block v : u.suc) {
+                if (v.dfn != 0) continue;
+                v.anc = u;
+                slot.push(v);
+            }
         }
     }
 

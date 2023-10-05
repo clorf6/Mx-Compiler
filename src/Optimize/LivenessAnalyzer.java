@@ -3,8 +3,11 @@ package Optimize;
 import ASM.Block;
 import ASM.Function;
 import ASM.Entity.*;
+import Utils.Position;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Stack;
 
 public class LivenessAnalyzer {
     Function func;
@@ -33,17 +36,27 @@ public class LivenessAnalyzer {
         }
     }
 
-    public void getRPO(Block now) {
-        vis.add(now);
-        for (Block nex : now.suc) {
-            if (!vis.contains(nex) && nex.name.contains("end")) getRPO(nex);
+    public void getRPO(Block u) {
+        Stack<Block> slot = new Stack<>();
+        vis.add(u);
+        slot.push(u);
+        while (!slot.isEmpty()) {
+            Block now = slot.peek();
+            boolean flag = true;
+            for (Block nex : now.suc) {
+                if (!vis.contains(nex)) {
+                    vis.add(nex);
+                    slot.push(nex);
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                func.RPO.add(now);
+                now.pos = func.RPO.size() - 1;
+                slot.pop();
+            }
         }
-        for (Block nex : now.suc) {
-            if (nex.name.contains("end")) continue;
-            if (!vis.contains(nex)) getRPO(nex);
-        }
-        func.RPO.add(now);
-        now.pos = func.RPO.size() - 1;
     }
 
     public void getInOut() {
