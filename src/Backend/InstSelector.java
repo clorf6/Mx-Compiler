@@ -73,6 +73,14 @@ public class InstSelector implements IRVisitor {
     @Override
     public void visit(IR.Program it) {
         it.globalInsts.accept(this);
+        for (var func : it.funcs) {
+            blocks.put(func.name, new ASM.Block(func.name));
+            for (var bl : func.block) {
+                if (bl.name.name.equals("entry")) continue;
+                String blockName = func.name + "." + bl.name.name;
+                blocks.put(blockName, new ASM.Block(blockName));
+            }
+        }
         it.funcs.forEach(func -> func.accept(this));
         program.merge();
     }
@@ -86,12 +94,7 @@ public class InstSelector implements IRVisitor {
     public void visit(IR.Function it) {
         currentFunction = new ASM.Function(it.name);
         currentFunction.callSize = 0;
-        currentBlock = new ASM.Block(currentFunction.name);
-        blocks.put(currentBlock.name, currentBlock);
-        for (int i = 1; i < it.block.size(); i++) {
-            String blockName = currentFunction.name + "." + it.block.get(i).name.name;
-            blocks.put(blockName, new ASM.Block(blockName));
-        }
+        currentBlock = blocks.get(currentFunction.name);
         program.text.globl.add(currentFunction.name);
         for (int i = 0; i < Integer.min(8, it.param.size()); i++) {
             program.a(i).size = it.param.get(i).type.size();
@@ -313,6 +316,7 @@ public class InstSelector implements IRVisitor {
             callsize += ((reg) tmp).size;
         }
         currentFunction.callSize = Integer.max(currentFunction.callSize, callsize);
+        //System.out.println(it.name);
         currentBlock.add(new ASM.Instruction.call(it.name, program));
         if (it.res != null) {
             reg res = (reg) convertReg(it.res);

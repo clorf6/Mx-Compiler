@@ -27,6 +27,11 @@ public class li extends Instruction {
     }
 
     @Override
+    public void update() {
+        if (rd instanceof virtualReg) rd = ((virtualReg) rd).to;
+    }
+
+    @Override
     public String toString() {
         return String.format("%-8s", "li") + rd + ", " + val;
     }

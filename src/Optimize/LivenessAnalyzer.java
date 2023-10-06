@@ -83,6 +83,7 @@ public class LivenessAnalyzer {
     public void getInterval() {
         int cnt = 0;
         for (var block : func.RPO) {
+            block.beg = cnt;
             for (var ins : block.inst) {
                 ins.pos = cnt;
                 for (var reg : ins.getDef()) {

@@ -31,6 +31,12 @@ public class comp extends Instruction {
     }
 
     @Override
+    public void update() {
+        if (op instanceof virtualReg) op = ((virtualReg) op).to;
+        if (res instanceof virtualReg) res = ((virtualReg) res).to;
+    }
+
+    @Override
     public String toString() {
         return String.format("%-8s", type) + res + ", " + op;
     }

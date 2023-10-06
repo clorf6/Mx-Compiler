@@ -13,4 +13,6 @@ public abstract class Instruction {
 
     public abstract HashSet<virtualReg> getUse();
     public abstract HashSet<virtualReg> getDef();
+
+    public abstract void update();
 }

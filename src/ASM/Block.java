@@ -9,6 +9,7 @@ import ASM.Entity.virtualReg;
 
 public class Block {
     public String name;
+    public int beg;
     public LinkedList<Block> pre;
     public LinkedList<Block> suc;
     public HashSet<virtualReg> use, def;

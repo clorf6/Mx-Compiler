@@ -37,6 +37,12 @@ public class load extends Instruction {
     }
 
     @Override
+    public void update() {
+        if (rd instanceof virtualReg) rd = ((virtualReg) rd).to;
+        if (ms.x instanceof virtualReg) ms.x = ((virtualReg) ms.x).to;
+    }
+
+    @Override
     public String toString() {
         return String.format("%-8s", type) + rd + ", " + ms;
     }

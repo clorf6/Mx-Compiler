@@ -61,6 +61,13 @@ public class binary extends Instruction {
     }
 
     @Override
+    public void update() {
+        if (op1 instanceof virtualReg) op1 = ((virtualReg) op1).to;
+        if (op2 instanceof virtualReg) op2 = ((virtualReg) op2).to;
+        if (res instanceof virtualReg) res = ((virtualReg) res).to;
+    }
+
+    @Override
     public void accept(ASMVisitor visitor) {
         visitor.visit(this);
     }

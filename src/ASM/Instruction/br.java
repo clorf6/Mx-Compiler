@@ -27,6 +27,11 @@ public class br extends Instruction {
         return use;
     }
 
+    @Override
+    public void update() {
+        if (op instanceof virtualReg) op = ((virtualReg) op).to;
+    }
+
     public HashSet<virtualReg> getDef() {
         return new HashSet<>();
     }

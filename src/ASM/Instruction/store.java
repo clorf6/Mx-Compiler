@@ -29,6 +29,12 @@ public class store extends Instruction {
         return use;
     }
 
+
+    @Override
+    public void update() {
+        if (val instanceof virtualReg) val = ((virtualReg) val).to;
+        if (ms.x instanceof virtualReg) ms.x = ((virtualReg) ms.x).to;
+    }
     @Override
     public HashSet<virtualReg> getDef() {
         return new HashSet<>();

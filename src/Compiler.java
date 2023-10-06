@@ -24,8 +24,8 @@ import java.io.OutputStream;
 
 public class Compiler {
     public static void main(String[] args) throws Exception {
-//        String inputName = "test.txt";
-//        InputStream input = new FileInputStream(inputName);
+        //String inputName = "test.txt";
+        //InputStream input = new FileInputStream(inputName);
         String outputName = "output.ll";
         OutputStream output = new FileOutputStream(outputName);
         String ASMoutputName = "test.s";
@@ -56,10 +56,10 @@ public class Compiler {
             //output1.write(program.toString().getBytes());
             new Mem2Reg(program);
             new BlockMerger(program);
-//            output.write(program.toString().getBytes());
+            //output.write(program.toString().getBytes());
             ASM.Program program1 = new ASM.Program();
             new InstSelector(program1, gScope).visit(program);
-//            ASMoutput2.write(program1.toString().getBytes());
+            //ASMoutput2.write(program1.toString().getBytes());
             //new RegAlloc(program1);
             new LinearScan(program1);
 //            ASMoutput.write(program1.toString().getBytes());

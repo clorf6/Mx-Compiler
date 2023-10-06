@@ -6,7 +6,7 @@ import ASM.Program;
 import java.util.HashSet;
 
 public class call extends Instruction {
-    String label;
+    public String label;
     Program program;
 
     public call(String label, Program program) {
@@ -27,6 +27,11 @@ public class call extends Instruction {
     @Override
     public HashSet<virtualReg> getDef() {
         return new HashSet<>();
+    }
+
+    @Override
+    public void update() {
+
     }
 
     @Override

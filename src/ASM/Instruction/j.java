@@ -21,6 +21,12 @@ public class j extends Instruction {
     public HashSet<virtualReg> getDef() {
         return new HashSet<>();
     }
+
+    @Override
+    public void update() {
+
+    }
+
     @Override
     public String toString() {
         return String.format("%-8s", "j") + label;

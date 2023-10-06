@@ -25,6 +25,11 @@ public class la extends Instruction {
         if (rd instanceof virtualReg) def.add((virtualReg) rd);
         return def;
     }
+
+    @Override
+    public void update() {
+        if (rd instanceof virtualReg) rd = ((virtualReg) rd).to;
+    }
     @Override
     public String toString() {
         return String.format("%-8s", "la") + rd + ", " + label;

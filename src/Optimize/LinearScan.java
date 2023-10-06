@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import ASM.*;
 import ASM.Entity.*;
 import ASM.Instruction.*;
+import org.antlr.runtime.tree.Tree;
 
 public class LinearScan implements ASMVisitor {
 
@@ -14,24 +15,20 @@ public class LinearScan implements ASMVisitor {
     public ArrayList<virtualReg> all;
     public ArrayList<Integer> callPos;
     public int callNow;
-    public LinkedList<virtualReg> active;
+    public TreeSet<virtualReg> active;
     public physicReg[] allocaReg;
     public physicReg[] tempReg;
     public int currentSize;
     public int currentPos;
-    public boolean[] freeReg;
     public Comparator<virtualReg> comp = new virtualReg.regComparator();
     public HashMap<virtualReg, memory> memoryMap;
-    public HashMap<virtualReg, Integer> regMap;
     public LinkedList<Instruction> currentInsts;
     public LinearScan(Program program) {
         this.program = program;
         this.all = new ArrayList<>();
-        this.active = new LinkedList<>();
+        this.active = new TreeSet<>( new virtualReg.regComparator2());
         this.callPos = new ArrayList<>();
         this.memoryMap = new HashMap<>();
-        this.regMap = new HashMap<>();
-        this.freeReg = new boolean[23];
         this.allocaReg = new physicReg[23];
         this.tempReg = new physicReg[2];
         for (int i = 0; i <= 6; i++) allocaReg[i] = program.t(i);
@@ -49,7 +46,7 @@ public class LinearScan implements ASMVisitor {
         all.clear();
         active.clear();
         callPos.clear();
-        for (int i = 0; i < 23; i++) freeReg[i] = true;
+        for (int i = 0; i < 23; i++) allocaReg[i].free = true;
         for (var block : func.block) {
             for (var inst : block.inst) {
                 if (inst instanceof call) callPos.add(inst.pos);
@@ -64,9 +61,6 @@ public class LinearScan implements ASMVisitor {
 
     Entity Allocate(Entity now, physicReg tmp, boolean isStore) {
         if (now instanceof virtualReg) {
-            if (regMap.containsKey((virtualReg) now)) {
-                return allocaReg[regMap.get((virtualReg) now)];
-            }
             memory offset;
             imm pos;
             if (memoryMap.containsKey((virtualReg) now)) {
@@ -104,6 +98,9 @@ public class LinearScan implements ASMVisitor {
     public void visit(Function function) {
         currentSize = 8;
         collectInterval(function);
+        for (var bl : function.RPO) {
+            for (var ins : bl.inst) regAlloc(ins.pos);
+        }
         for (var bl : function.RPO) bl.accept(this);
         function.size = currentSize + function.callSize;
         int size = (function.size / 16 + ((function.size % 16 != 0) ? 1 : 0)) * 16;
@@ -130,32 +127,41 @@ public class LinearScan implements ASMVisitor {
 
     public void regAlloc(int tim) {
         if (callNow < callPos.size() && tim == callPos.get(callNow)) callNow++;
-        //System.out.println(tim);
-        //for (int i = 0; i < 23; i++) System.out.println(i + " " + freeReg[i]);
-        for (int i = 0; i < active.size(); i++) {
-            var reg = active.get(i);
+        for (var i = active.iterator(); i.hasNext();) {
+            var reg = i.next();
             if (reg.end < tim) {
-                Integer id = regMap.get(reg);
-                if (id != null) {
-                    freeReg[id] = true;
-                    regMap.remove(reg);
-                }
-                active.remove(i);
-                i--;
+                if (reg.to instanceof physicReg) ((physicReg) reg.to).free = true;
+                i.remove();
             }
         }
         while (currentPos < all.size() && all.get(currentPos).beg == tim) {
-            active.addLast(all.get(currentPos));
+            var now = all.get(currentPos);
             currentPos++;
-            if (callNow < callPos.size() && active.getLast().end > callPos.get(callNow)) continue;
+            if (callNow < callPos.size() && now.end > callPos.get(callNow)) continue;
+            boolean spill = true;
             for (int i = 0; i <= 22; i++) {
-                if (freeReg[i]) {
-                    freeReg[i] = false;
-                    allocaReg[i].size = active.getLast().size;
-                    regMap.put(active.getLast(), i);
+                if (allocaReg[i].free) {
+                    allocaReg[i].free = false;
+                    active.add(now);
+                    allocaReg[i].size = now.size;
+                    now.to = allocaReg[i];
+                    spill = false;
                     break;
                 }
             }
+            if (spill) Spill(now);
+        }
+    }
+
+    void Spill(virtualReg now) {
+        virtualReg las = active.last();
+        if (las.end > now.end) {
+            physicReg p = (physicReg) las.to;
+            p.size = now.size;
+            las.to = las;
+            now.to = p;
+            active.remove(las);
+            active.add(now);
         }
     }
 
@@ -163,10 +169,10 @@ public class LinearScan implements ASMVisitor {
     public void visit(Block block) {
         currentBlock = block;
         currentInsts = new LinkedList<>();
-        for (var ins : block.inst) {
-            regAlloc(ins.pos);
+        block.inst.forEach(ins -> {
+            ins.update();
             ins.accept(this);
-        }
+        });
         currentBlock.inst = currentInsts;
     }
 

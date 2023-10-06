@@ -22,6 +22,11 @@ public class ret extends Instruction {
     }
 
     @Override
+    public void update() {
+
+    }
+
+    @Override
     public void accept(ASMVisitor visitor) {
         visitor.visit(this);
     }
