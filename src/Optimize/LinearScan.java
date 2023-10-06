@@ -31,12 +31,15 @@ public class LinearScan implements ASMVisitor {
         this.callPos = new ArrayList<>();
         this.memoryMap = new HashMap<>();
         this.regMap = new HashMap<>();
-        this.freeReg = new boolean[15];
-        this.allocaReg = new physicReg[15];
-        this.tempReg = new physicReg[3];
+        this.freeReg = new boolean[23];
+        this.allocaReg = new physicReg[23];
+        this.tempReg = new physicReg[2];
         for (int i = 0; i <= 6; i++) allocaReg[i] = program.t(i);
-        for (int i = 7; i <= 14; i++) allocaReg[i] = program.s(i - 6);
-        for (int i = 0; i <= 2; i++) tempReg[i] = program.s(i + 9);
+        for (int i = 7; i <= 15; i++) allocaReg[i] = program.s(i - 6);
+        for (int i = 16; i <= 20; i++) allocaReg[i] = program.a(i - 13);
+        allocaReg[21] = program.gp;
+        allocaReg[22] = program.tp;
+        for (int i = 0; i <= 1; i++) tempReg[i] = program.s(i + 10);
         visit(program);
     }
 
@@ -46,7 +49,7 @@ public class LinearScan implements ASMVisitor {
         all.clear();
         active.clear();
         callPos.clear();
-        for (int i = 0; i < 15; i++) freeReg[i] = true;
+        for (int i = 0; i < 23; i++) freeReg[i] = true;
         for (var block : func.block) {
             for (var inst : block.inst) {
                 if (inst instanceof call) callPos.add(inst.pos);
@@ -128,7 +131,7 @@ public class LinearScan implements ASMVisitor {
     public void regAlloc(int tim) {
         if (callNow < callPos.size() && tim == callPos.get(callNow)) callNow++;
         //System.out.println(tim);
-        //for (int i = 0; i < 15; i++) System.out.println(i + " " + freeReg[i]);
+        //for (int i = 0; i < 23; i++) System.out.println(i + " " + freeReg[i]);
         for (int i = 0; i < active.size(); i++) {
             var reg = active.get(i);
             if (reg.end < tim) {
@@ -145,7 +148,7 @@ public class LinearScan implements ASMVisitor {
             active.addLast(all.get(currentPos));
             currentPos++;
             if (callNow < callPos.size() && active.getLast().end > callPos.get(callNow)) continue;
-            for (int i = 0; i <= 14; i++) {
+            for (int i = 0; i <= 22; i++) {
                 if (freeReg[i]) {
                     freeReg[i] = false;
                     allocaReg[i].size = active.getLast().size;
@@ -172,7 +175,7 @@ public class LinearScan implements ASMVisitor {
         inst.op1 = Allocate(inst.op1, tempReg[0], false);
         inst.op2 = Allocate(inst.op2, tempReg[1], false);
         currentInsts.add(inst);
-        inst.res = Allocate(inst.res, tempReg[2], true);
+        inst.res = Allocate(inst.res, tempReg[0], true);
     }
 
     @Override
