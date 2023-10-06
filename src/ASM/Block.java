@@ -9,27 +9,25 @@ import ASM.Entity.virtualReg;
 
 public class Block {
     public String name;
-    public int pos, beg, end;
-    public LinkedHashSet<Block> pre;
-    public LinkedHashSet<Block> suc;
-    public LinkedHashSet<virtualReg> use, def;
-    public LinkedHashSet<virtualReg> in, out;
+    public LinkedList<Block> pre;
+    public LinkedList<Block> suc;
+    public HashSet<virtualReg> use, def;
+    public HashSet<virtualReg> in, out;
     public LinkedList<Instruction> inst;
     public LinkedList<Instruction> phiInst;
     public LinkedList<Instruction> jumpInst;
 
     public Block(String name) {
         this.name = name;
-        this.pos = -1;
         this.phiInst = new LinkedList<>();
         this.jumpInst = new LinkedList<>();
         this.inst = new LinkedList<>();
-        this.pre = new LinkedHashSet<>();
-        this.suc = new LinkedHashSet<>();
-        this.in = new LinkedHashSet<>();
-        this.out = new LinkedHashSet<>();
-        this.use = new LinkedHashSet<>();
-        this.def = new LinkedHashSet<>();
+        this.pre = new LinkedList<>();
+        this.suc = new LinkedList<>();
+        this.in = new HashSet<>();
+        this.out = new HashSet<>();
+        this.use = new HashSet<>();
+        this.def = new HashSet<>();
     }
 
     public void add(Instruction ins) {

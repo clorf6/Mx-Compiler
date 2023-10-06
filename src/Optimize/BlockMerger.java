@@ -31,6 +31,7 @@ public class BlockMerger {
                 var jumpIns = bl.inst.getLast();
                 if (jumpIns instanceof br && ((br) jumpIns).iffalse == null) {
                     var toBlock = blockMap.get(((br) jumpIns).iftrue);
+                    if (toBlock.name.name.equals("return")) continue;
                     if (toBlock.pre.size() == 1) {
                         flag = true;
                         bl.inst.remove(jumpIns);

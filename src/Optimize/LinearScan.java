@@ -21,16 +21,16 @@ public class LinearScan implements ASMVisitor {
     public int currentPos;
     public boolean[] freeReg;
     public Comparator<virtualReg> comp = new virtualReg.regComparator();
-    public LinkedHashMap<virtualReg, memory> memoryMap;
-    public LinkedHashMap<virtualReg, Integer> regMap;
+    public HashMap<virtualReg, memory> memoryMap;
+    public HashMap<virtualReg, Integer> regMap;
     public LinkedList<Instruction> currentInsts;
     public LinearScan(Program program) {
         this.program = program;
         this.all = new ArrayList<>();
         this.active = new LinkedList<>();
         this.callPos = new ArrayList<>();
-        this.memoryMap = new LinkedHashMap<>();
-        this.regMap = new LinkedHashMap<>();
+        this.memoryMap = new HashMap<>();
+        this.regMap = new HashMap<>();
         this.freeReg = new boolean[15];
         this.allocaReg = new physicReg[15];
         this.tempReg = new physicReg[3];
@@ -101,7 +101,7 @@ public class LinearScan implements ASMVisitor {
     public void visit(Function function) {
         currentSize = 8;
         collectInterval(function);
-        for (int i = function.RPO.size() - 1; i >= 0; i--) function.RPO.get(i).accept(this);
+        for (var bl : function.RPO) bl.accept(this);
         function.size = currentSize + function.callSize;
         int size = (function.size / 16 + ((function.size % 16 != 0) ? 1 : 0)) * 16;
         Block fir = function.block.get(0);

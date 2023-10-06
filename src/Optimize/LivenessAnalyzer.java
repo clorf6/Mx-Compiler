@@ -5,16 +5,14 @@ import ASM.Function;
 import ASM.Entity.*;
 import Utils.Position;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Stack;
+import java.util.*;
 
 public class LivenessAnalyzer {
     Function func;
-    LinkedHashSet<Block> vis;
+    HashSet<Block> vis;
     public LivenessAnalyzer(Function func) {
         this.func = func;
-        this.vis = new LinkedHashSet<>();
+        this.vis = new HashSet<>();
         getDefUse();
         getRPO(func.block.get(0));
         getInOut();
@@ -53,17 +51,18 @@ public class LivenessAnalyzer {
             }
             if (flag) {
                 func.RPO.add(now);
-                now.pos = func.RPO.size() - 1;
                 slot.pop();
             }
         }
+        Collections.reverse(func.RPO);
     }
 
     public void getInOut() {
         boolean flag = true;
         while (flag) {
             flag = false;
-            for (var block : func.RPO) {
+            for (int i = func.RPO.size() - 1; i >= 0; i--) {
+                var block = func.RPO.get(i);
                 LinkedHashSet<virtualReg> newOut = new LinkedHashSet<>();
                 for (var v : block.suc) newOut.addAll(v.in);
                 LinkedHashSet<virtualReg> newIn = new LinkedHashSet<>(newOut);
@@ -83,24 +82,19 @@ public class LivenessAnalyzer {
 
     public void getInterval() {
         int cnt = 0;
-        for (int i = func.RPO.size() - 1; i >= 0; i--) {
-            Block now = func.RPO.get(i);
-            now.beg = cnt;
-            for (var ins : now.inst) {
-                ins.pos = cnt++;
-            }
-            now.end = cnt - 1;
-            //System.out.println(now.name + " " + now.beg + " " + now.end);
-        }
-        for (var block : func.RPO) { // for SSA
-            for (var reg : block.out) reg.end = Math.max(block.end + 1, reg.end);
+        for (var block : func.RPO) {
             for (var ins : block.inst) {
+                ins.pos = cnt;
                 for (var reg : ins.getDef()) {
-                    reg.beg = Math.min(ins.pos, reg.beg);
-                    reg.end = Math.max(ins.pos, reg.end);
+                    reg.beg = Math.min(cnt, reg.beg);
+                    reg.end = Math.max(cnt, reg.end);
                 }
-                for (var reg : ins.getUse()) reg.end = Math.max(ins.pos, reg.end);
+                for (var reg : ins.getUse()) reg.end = Math.max(cnt, reg.end);
+                cnt++;
             }
+            cnt++;
+            for (var reg : block.out) reg.end = Math.max(cnt, reg.end);
+            //System.out.println(now.name + " " + now.beg + " " + now.end);
         }
     }
 
