@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import ASM.*;
 import ASM.Entity.*;
 import ASM.Instruction.*;
-import org.antlr.runtime.tree.Tree;
 
 public class LinearScan implements ASMVisitor {
 
@@ -14,6 +13,9 @@ public class LinearScan implements ASMVisitor {
     public Block currentBlock;
     public ArrayList<virtualReg> all;
     public ArrayList<Integer> callPos;
+
+    public HashSet<virtualReg> calleeReg;
+    public ArrayList<HashSet<virtualReg>> callUse;
     public int callNow;
     public TreeSet<virtualReg> active;
     public physicReg[] allocaReg;
@@ -28,14 +30,16 @@ public class LinearScan implements ASMVisitor {
         this.all = new ArrayList<>();
         this.active = new TreeSet<>( new virtualReg.regComparator2());
         this.callPos = new ArrayList<>();
+        this.callUse = new ArrayList<>();
         this.memoryMap = new HashMap<>();
-        this.allocaReg = new physicReg[23];
+        this.allocaReg = new physicReg[26];
         this.tempReg = new physicReg[2];
         for (int i = 0; i <= 6; i++) allocaReg[i] = program.t(i);
-        for (int i = 7; i <= 15; i++) allocaReg[i] = program.s(i - 6);
-        for (int i = 16; i <= 20; i++) allocaReg[i] = program.a(i - 13);
-        allocaReg[21] = program.gp;
-        allocaReg[22] = program.tp;
+        for (int i = 7; i <= 13; i++) allocaReg[i] = program.a(i - 6);
+        allocaReg[14] = program.gp;
+        allocaReg[15] = program.tp;
+        allocaReg[16] = program.a(0);
+        for (int i = 17; i <= 25; i++) allocaReg[i] = program.s(i - 16);
         for (int i = 0; i <= 1; i++) tempReg[i] = program.s(i + 10);
         visit(program);
     }
@@ -46,7 +50,9 @@ public class LinearScan implements ASMVisitor {
         all.clear();
         active.clear();
         callPos.clear();
-        for (int i = 0; i < 23; i++) allocaReg[i].free = true;
+        callUse.clear();
+        calleeReg = new HashSet<>();
+        for (int i = 0; i < 26; i++) allocaReg[i].free = true;
         for (var block : func.block) {
             for (var inst : block.inst) {
                 if (inst instanceof call) callPos.add(inst.pos);
@@ -101,6 +107,37 @@ public class LinearScan implements ASMVisitor {
         for (var bl : function.RPO) {
             for (var ins : bl.inst) regAlloc(ins.pos);
         }
+        memory offset;
+        imm pos;
+        int now = 0;
+        for (var bl : function.RPO) {
+            currentInsts = new LinkedList<>();
+            for (var ins : bl.inst) {
+                if (ins instanceof call) {
+                    for (var reg : callUse.get(now)) {
+                        if (!(reg.to instanceof physicReg)) continue;
+                        if (reg.beg >= ins.pos || reg.end <= ins.pos) continue;
+                        offset = memoryMap.get(reg);
+                        if (offset == null) {
+                            pos = new imm(- currentSize - reg.size);
+                            currentSize += reg.size;
+                            offset = new memory(program.s(0), pos, reg.size);
+                            memoryMap.put(reg, offset);
+                        }
+                        currentInsts.add(new store(reg.to, offset));
+                    }
+                    currentInsts.add(ins);
+                    for (var reg : callUse.get(now)) {
+                        if (!(reg.to instanceof physicReg)) continue;
+                        if (reg.beg >= ins.pos || reg.end <= ins.pos) continue;
+                        offset = memoryMap.get(reg);
+                        currentInsts.add(new load(reg.to, offset));
+                    }
+                    now++;
+                } else currentInsts.add(ins);
+            }
+            bl.inst = currentInsts;
+        }
         for (var bl : function.RPO) bl.accept(this);
         function.size = currentSize + function.callSize;
         int size = (function.size / 16 + ((function.size % 16 != 0) ? 1 : 0)) * 16;
@@ -126,10 +163,14 @@ public class LinearScan implements ASMVisitor {
     }
 
     public void regAlloc(int tim) {
-        if (callNow < callPos.size() && tim == callPos.get(callNow)) callNow++;
+        if (callNow < callPos.size() && tim == callPos.get(callNow)) {
+            callUse.add(new HashSet<>(calleeReg));
+            callNow++;
+        }
         for (var i = active.iterator(); i.hasNext();) {
             var reg = i.next();
             if (reg.end < tim) {
+                calleeReg.remove(reg);
                 if (reg.to instanceof physicReg) ((physicReg) reg.to).free = true;
                 i.remove();
             }
@@ -137,9 +178,11 @@ public class LinearScan implements ASMVisitor {
         while (currentPos < all.size() && all.get(currentPos).beg == tim) {
             var now = all.get(currentPos);
             currentPos++;
-            if (callNow < callPos.size() && now.end > callPos.get(callNow)) continue;
+            boolean acrossCall = callNow < callPos.size() && now.end > callPos.get(callNow);
             boolean spill = true;
-            for (int i = 0; i <= 22; i++) {
+            if (acrossCall) calleeReg.add(now);
+            int lim = acrossCall ? 19 : 0;
+            for (int i = lim; i <= 25; i++) {
                 if (allocaReg[i].free) {
                     allocaReg[i].free = false;
                     active.add(now);

@@ -50,7 +50,7 @@ public class Compiler {
             ASTBuilder astBuilder = new ASTBuilder();
             ASTRoot = (rootNode) astBuilder.visit(parseTreeRoot);
             new SymbolCollector(gScope).visit(ASTRoot);
-            //new SemanticChecker(gScope).visit(ASTRoot);
+            new SemanticChecker(gScope).visit(ASTRoot);
             Program program = new Program();
             new IRBuilder(program, gScope).visit(ASTRoot);
             //output1.write(program.toString().getBytes());
@@ -62,7 +62,7 @@ public class Compiler {
             //ASMoutput2.write(program1.toString().getBytes());
             //new RegAlloc(program1);
             new LinearScan(program1);
-//            ASMoutput.write(program1.toString().getBytes());
+            //ASMoutput.write(program1.toString().getBytes());
 //            ASM.Program program2 = new ASM.Program();
 //            new InstSelector(program2, gScope).visit(program);
 //            new RegAlloc(program2);
