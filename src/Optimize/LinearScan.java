@@ -181,7 +181,7 @@ public class LinearScan implements ASMVisitor {
             boolean acrossCall = callNow < callPos.size() && now.end > callPos.get(callNow);
             boolean spill = true;
             if (acrossCall) calleeReg.add(now);
-            int lim = acrossCall ? 19 : 0;
+            int lim = acrossCall ? 17 : 0;
             for (int i = lim; i <= 25; i++) {
                 if (allocaReg[i].free) {
                     allocaReg[i].free = false;
