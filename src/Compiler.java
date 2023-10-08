@@ -7,6 +7,7 @@ import Frontend.SemanticChecker;
 import Frontend.SymbolCollector;
 import IR.Program;
 import Optimize.BlockMerger;
+import Optimize.Global2Local;
 import Optimize.LinearScan;
 import Optimize.Mem2Reg;
 import Parser.MxLexer;
@@ -53,6 +54,7 @@ public class Compiler {
             new SemanticChecker(gScope).visit(ASTRoot);
             Program program = new Program();
             new IRBuilder(program, gScope).visit(ASTRoot);
+            new Global2Local(program);
             //output1.write(program.toString().getBytes());
             new Mem2Reg(program);
             new BlockMerger(program);

@@ -113,24 +113,28 @@ public class LinearScan implements ASMVisitor {
             currentInsts = new LinkedList<>();
             for (var ins : bl.inst) {
                 if (ins instanceof call) {
-                    for (var reg : callUse.get(now)) {
-                        if (!(reg.to instanceof physicReg)) continue;
-                        if (reg.beg >= ins.pos || reg.end <= ins.pos) continue;
-                        offset = memoryMap.get(reg);
-                        if (offset == null) {
-                            pos = new imm(- currentSize - reg.size);
-                            currentSize += reg.size;
-                            offset = new memory(program.s(0), pos, reg.size);
-                            memoryMap.put(reg, offset);
+                    if (now == 0 || callPos.get(now - 1) != ins.pos - 1) {
+                        for (var reg : callUse.get(now)) {
+                            if (!(reg.to instanceof physicReg)) continue;
+                            if (reg.beg >= ins.pos || reg.end <= ins.pos) continue;
+                            offset = memoryMap.get(reg);
+                            if (offset == null) {
+                                pos = new imm(- currentSize - reg.size);
+                                currentSize += reg.size;
+                                offset = new memory(program.s(0), pos, reg.size);
+                                memoryMap.put(reg, offset);
+                            }
+                            currentInsts.add(new store(reg.to, offset));
                         }
-                        currentInsts.add(new store(reg.to, offset));
                     }
                     currentInsts.add(ins);
-                    for (var reg : callUse.get(now)) {
-                        if (!(reg.to instanceof physicReg)) continue;
-                        if (reg.beg >= ins.pos || reg.end <= ins.pos) continue;
-                        offset = memoryMap.get(reg);
-                        currentInsts.add(new load(reg.to, offset));
+                    if (now == callPos.size() - 1 || callPos.get(now + 1) != ins.pos + 1) {
+                        for (var reg : callUse.get(now)) {
+                            if (!(reg.to instanceof physicReg)) continue;
+                            if (reg.beg >= ins.pos || reg.end <= ins.pos) continue;
+                            offset = memoryMap.get(reg);
+                            currentInsts.add(new load(reg.to, offset));
+                        }
                     }
                     now++;
                 } else currentInsts.add(ins);
