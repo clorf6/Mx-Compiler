@@ -96,32 +96,36 @@ public class InstSelector implements IRVisitor {
 
     @Override
     public void visit(IR.Function it) {
-        globalReg.clear();
         currentFunction = new ASM.Function(it.name);
         currentFunction.callSize = 0;
         currentBlock = blocks.get(currentFunction.name);
         program.text.globl.add(currentFunction.name);
-        for (int i = 0; i < Integer.min(4, it.param.size()); i++) {
+        for (int i = 0; i < Integer.min(6, it.param.size()); i++) {
             program.a(i).size = it.param.get(i).type.size();
             virtualReg tmp = getTempReg(it.param.get(i).type.size());
             currentBlock.add(new mv(tmp, program.a(i)));
             regs.put(currentFunction.name + "."  + it.param.get(i).toString(), tmp);
         }
-        for (int i = 4; i < it.param.size(); i++) {
+        for (int i = 6; i < it.param.size(); i++) {
             virtualReg tmp = getTempReg(it.param.get(i).type.size());
             currentBlock.add(new ASM.Instruction.load(tmp,
                     new memory(program.s(0), new imm((i - 8) * 4), it.param.get(i).type.size())));
             regs.put(currentFunction.name + "."  + it.param.get(i).toString(), tmp);
         }
+        globalReg.clear();
         it.block.get(0).accept(this);
+        for (var reg : globalReg.keySet()) {
+            currentBlock.inst.add(0, new la(globalReg.get(reg), reg));
+        }
         currentFunction.block.add(currentBlock);
         for (int i = 1; i < it.block.size(); i++) {
+            globalReg.clear();
             currentBlock = blocks.get(currentFunction.name + "." + it.block.get(i).name.name);
             it.block.get(i).accept(this);
+            for (var reg : globalReg.keySet()) {
+                currentBlock.inst.add(0, new la(globalReg.get(reg), reg));
+            }
             currentFunction.block.add(currentBlock);
-        }
-        for (var reg : globalReg.keySet()) {
-            currentFunction.block.get(0).inst.add(0, new la(globalReg.get(reg), reg));
         }
         program.text.func.add(currentFunction);
     }
@@ -311,13 +315,13 @@ public class InstSelector implements IRVisitor {
 
     @Override
     public void visit(IR.Instruction.call it) {
-        for (int i = 0; i < Integer.min(4, it.args.size()); ++i) {
+        for (int i = 0; i < Integer.min(6, it.args.size()); ++i) {
             Entity tmp = convertReg(it.args.get(i));
             if (tmp instanceof reg) currentBlock.add(new mv(program.a(i), (reg) tmp));
             else if (tmp instanceof imm) currentBlock.add(new li(program.a(i), (imm) tmp));
         }
         int callsize = 0;
-        for (int i = 4; i < it.args.size(); i++) {
+        for (int i = 6; i < it.args.size(); i++) {
             Entity tmp = convertReg(it.args.get(i));
             if (tmp instanceof imm) tmp = storeImm((imm) tmp, 4);
             currentBlock.add(new ASM.Instruction.store((reg) tmp, new memory(program.sp, new imm((i - 8) * 4), ((reg) tmp).size)));
