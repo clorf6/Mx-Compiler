@@ -35,10 +35,9 @@ public class LinearScan implements ASMVisitor {
         this.allocaReg = new physicReg[26];
         this.tempReg = new physicReg[2];
         for (int i = 0; i <= 6; i++) allocaReg[i] = program.t(i);
-        for (int i = 7; i <= 13; i++) allocaReg[i] = program.a(i - 6);
-        allocaReg[14] = program.a(0);
-        allocaReg[15] = program.gp;
-        allocaReg[16] = program.tp;
+        allocaReg[7] = program.gp;
+        allocaReg[8] = program.tp;
+        for (int i = 9; i <= 16; i++) allocaReg[i] = program.a(i - 9);
         for (int i = 17; i <= 25; i++) allocaReg[i] = program.s(i - 16);
         for (int i = 0; i <= 1; i++) tempReg[i] = program.s(i + 10);
         visit(program);
@@ -181,7 +180,7 @@ public class LinearScan implements ASMVisitor {
             boolean acrossCall = callNow < callPos.size() && now.end > callPos.get(callNow);
             boolean spill = true;
             if (acrossCall) calleeReg.add(now);
-            int lim = acrossCall ? 15 : 0;
+            int lim = acrossCall ? 14 : 0;
             for (int i = lim; i <= 25; i++) {
                 if (allocaReg[i].free) {
                     allocaReg[i].free = false;
