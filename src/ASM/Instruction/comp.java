@@ -1,9 +1,8 @@
 package ASM.Instruction;
 
 import ASM.ASMVisitor;
-import ASM.Entity.Entity;
-import ASM.Entity.virtualReg;
-
+import ASM.Entity.*;
+import static Optimize.PeepholeOptimizer.loadMap;
 import java.util.HashSet;
 
 public class comp extends Instruction {
@@ -28,6 +27,12 @@ public class comp extends Instruction {
         HashSet<virtualReg> def = new HashSet<>();
         if (res instanceof virtualReg) def.add((virtualReg) res);
         return def;
+    }
+
+    @Override
+    public void updateUsed() {
+        if (res instanceof reg) loadMap.remove(res);
+        if (op instanceof reg) loadMap.remove(op);
     }
 
     @Override

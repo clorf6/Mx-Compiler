@@ -23,6 +23,11 @@ public class j extends Instruction {
     }
 
     @Override
+    public void updateUsed() {
+
+    }
+
+    @Override
     public void update() {
 
     }

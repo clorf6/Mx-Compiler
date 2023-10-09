@@ -30,6 +30,11 @@ public class call extends Instruction {
     }
 
     @Override
+    public void updateUsed() {
+
+    }
+
+    @Override
     public void update() {
 
     }

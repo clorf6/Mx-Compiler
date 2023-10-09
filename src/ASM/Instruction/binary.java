@@ -2,10 +2,10 @@ package ASM.Instruction;
 
 import ASM.ASMVisitor;
 import ASM.Entity.*;
-import IR.Instruction.*;
-import Utils.Error.assemblyError;
 
 import java.util.HashSet;
+
+import static Optimize.PeepholeOptimizer.loadMap;
 
 public class binary extends Instruction {
 
@@ -28,7 +28,6 @@ public class binary extends Instruction {
             case and -> "and";
             case or -> "or";
             case xor -> "xor";
-            default -> throw new assemblyError(null, "Wrong binary type");
         };
     }
 
@@ -58,6 +57,13 @@ public class binary extends Instruction {
         HashSet<virtualReg> def = new HashSet<>();
         if (res instanceof virtualReg) def.add((virtualReg) res);
         return def;
+    }
+
+    @Override
+    public void updateUsed() {
+        if (res instanceof reg) loadMap.remove(res);
+        if (op1 instanceof reg) loadMap.remove(op1);
+        if (op2 instanceof reg) loadMap.remove(op2);
     }
 
     @Override

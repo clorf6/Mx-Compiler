@@ -2,8 +2,7 @@ package ASM.Instruction;
 
 import ASM.ASMVisitor;
 import ASM.Entity.*;
-import Utils.Error.assemblyError;
-
+import static Optimize.PeepholeOptimizer.loadMap;
 import java.util.HashSet;
 
 public class store extends Instruction {
@@ -38,6 +37,12 @@ public class store extends Instruction {
     @Override
     public HashSet<virtualReg> getDef() {
         return new HashSet<>();
+    }
+
+    @Override
+    public void updateUsed() {
+        loadMap.remove(val);
+        loadMap.remove(ms.x);
     }
 
     @Override

@@ -3,14 +3,20 @@ package Optimize;
 import ASM.Instruction.*;
 import ASM.Program;
 import ASM.Entity.*;
+
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.HashMap;
 
 public class PeepholeOptimizer {
     Program program;
+    static public final HashMap<reg, load> loadMap = new HashMap<>();
 
     public PeepholeOptimizer(Program program) {
         this.program = program;
         run();
+        memEliminate();
     }
 
     public void run() {
@@ -24,17 +30,19 @@ public class PeepholeOptimizer {
                         if (mv1.rd == mv1.rs) {
                             i++;
                             continue;
-                        } else if (i + 1 < block.inst.size() && block.inst.get(i + 1) instanceof mv mv2) {
-                            if (mv1.rd == mv2.rs && mv1.rs == mv2.rd) {
-                                newInst.add(now);
-                                i += 2;
-                                continue;
-                            } else if (i + 2 < block.inst.size() && block.inst.get(i + 2) instanceof mv mv3) {
-                                if (mv1.rd == mv2.rs && mv2.rd == mv3.rs && mv3.rd == mv1.rs) {
+                        } else {
+                            if (i + 1 < block.inst.size() && block.inst.get(i + 1) instanceof mv mv2) {
+                                if (mv1.rd == mv2.rs && mv1.rs == mv2.rd) {
                                     newInst.add(now);
-                                    newInst.add(mv2);
-                                    i += 3;
+                                    i += 2;
                                     continue;
+                                } else if (i + 2 < block.inst.size() && block.inst.get(i + 2) instanceof mv mv3) {
+                                    if (mv1.rd == mv2.rs && mv2.rd == mv3.rs && mv3.rd == mv1.rs) {
+                                        newInst.add(now);
+                                        newInst.add(mv2);
+                                        i += 3;
+                                        continue;
+                                    }
                                 }
                             }
                         }
@@ -112,6 +120,38 @@ public class PeepholeOptimizer {
                     i++;
                 }
                 block.inst = newInst;
+            }
+        }
+    }
+
+    public void memEliminate() {
+        LinkedHashSet<Instruction> remove = new LinkedHashSet<>();
+        for (var func : program.text.func) {
+            for (var block : func.block) {
+                loadMap.clear();
+                remove.clear();
+                for (var i = block.inst.iterator(); i.hasNext();) {
+                    var ins = i.next();
+                    if (ins instanceof load ld) {
+                        loadMap.remove(ld.ms.x);
+                        if (loadMap.containsKey(ld.rd)) {
+                            remove.add(loadMap.get(ld.rd));
+                        }
+                        loadMap.put(ld.rd, ld);
+                    } else if (ins instanceof store st) {
+                        loadMap.remove(st.ms.x);
+                        if (loadMap.containsKey(st.val) && st.ms == loadMap.get(st.val).ms) {
+                            remove.add(loadMap.get(st.val));
+                            remove.add(ins);
+                            loadMap.remove(st.val);
+                        } else loadMap.remove(st.val);
+                    } else ins.updateUsed();
+                }
+                //System.out.println("? " + block);
+                for (var ins : remove) {
+                    //System.out.println("re " + ins);
+                    block.inst.remove(ins);
+                }
             }
         }
     }

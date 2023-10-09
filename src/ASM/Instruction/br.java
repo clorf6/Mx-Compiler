@@ -2,7 +2,9 @@ package ASM.Instruction;
 
 import ASM.ASMVisitor;
 import ASM.Entity.Entity;
+import ASM.Entity.reg;
 import ASM.Entity.virtualReg;
+import static Optimize.PeepholeOptimizer.loadMap;
 
 import java.util.HashSet;
 
@@ -35,6 +37,12 @@ public class br extends Instruction {
     public HashSet<virtualReg> getDef() {
         return new HashSet<>();
     }
+
+    @Override
+    public void updateUsed() {
+        if (op instanceof reg) loadMap.remove(op);
+    }
+
     @Override
     public void accept(ASMVisitor visitor) {
         visitor.visit(this);

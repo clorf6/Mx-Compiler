@@ -2,7 +2,7 @@ package ASM.Instruction;
 
 import ASM.ASMVisitor;
 import ASM.Entity.*;
-
+import static Optimize.PeepholeOptimizer.loadMap;
 import java.util.HashSet;
 
 public class li extends Instruction {
@@ -24,6 +24,11 @@ public class li extends Instruction {
         HashSet<virtualReg> def = new HashSet<>();
         if (rd instanceof virtualReg) def.add((virtualReg) rd);
         return def;
+    }
+
+    @Override
+    public void updateUsed() {
+        loadMap.remove(rd);
     }
 
     @Override
